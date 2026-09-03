@@ -18,7 +18,7 @@ Doccer serves two distinct in-process roles:
 
 Construction cost scales strictly with what a workload touches. "Full Doccer" (sweep → collect → validate → laminarize → tiered acceptance) is one composition of these primitives, never the required entry price.
 
-### The 18-Layer Rung Ladder
+### The 20-Layer Rung Ladder
 
 ```text
 TextSpan / Allen relations        pure, zero dependencies

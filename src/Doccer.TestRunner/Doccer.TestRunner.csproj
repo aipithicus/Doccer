@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>Doccer.TestRunner</AssemblyName>
+    <RootNamespace>Doccer.TestRunner</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Doccer.TestRunner.Tests" />
+  </ItemGroup>
+</Project>

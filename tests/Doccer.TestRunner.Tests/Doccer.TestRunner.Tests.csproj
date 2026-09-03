@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>Doccer.TestRunner.Tests</AssemblyName>
+    <RootNamespace>Doccer.TestRunner.Tests</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Doccer.TestRunner\Doccer.TestRunner.csproj" />
+  </ItemGroup>
+</Project>

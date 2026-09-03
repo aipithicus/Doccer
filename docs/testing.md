@@ -6,7 +6,7 @@ Doccer uses a high-assurance verification approach for mathematical interval alg
 
 ## 1. Verification Philosophy
 
-- **Zero-Dependency Harness**: The core test runner (`Doccer.Tests`) executes as a standalone program without third-party test framework overhead, enabling rapid, deterministic execution.
+- **Zero-Dependency Harness**: The contract harness (`Doccer.Tests`) executes as a standalone program without third-party test framework overhead, enabling rapid, deterministic execution. Its versioned catalog exposes independently addressable cases. The separate scaffolded `Doccer.TestRunner` will orchestrate explicitly eligible cases with bounded process parallelism; scheduling has not landed yet.
 - **Algebraic Law Verification**: Where a capability has algebraic laws (associativity, distributivity, converse, identity, closure), the harness checks them through exhaustive finite censuses or independent reference oracles where tractable.
 - **Oracle & Census Testing**: Complex optimization routines (such as DAG path selection or laminarization) are validated against independent, brute-force oracles and exhaustive state censuses over bounded inputs.
 - **Preservation of Residue**: Tests explicitly assert that unresolved or crossing structures (e.g. crossing laminar spans, unclosed delimiters, unmapped origin slices) are captured as structured residual data rather than silently ignored.
@@ -57,6 +57,42 @@ The repository maintains specific baseline verification suites:
 To execute the full verification suite:
 
 ```powershell
-# Run standalone test harness and law suite
+# Run the standalone contract harness and law suite
 dotnet run --project tests/Doccer.Tests/Doccer.Tests.csproj
 ```
+
+This no-argument command remains the serial compatibility and release gate. The current harness
+also exposes machine-readable discovery and exact case selection:
+
+```powershell
+dotnet run --project tests/Doccer.Tests/Doccer.Tests.csproj -- list --format json
+dotnet run --project tests/Doccer.Tests/Doccer.Tests.csproj -- run --case MasterTopologyIsTotal --format json
+```
+
+To verify the currently implemented TestRunner scaffold boundary:
+
+```powershell
+dotnet run --project tests/Doccer.TestRunner.Tests/Doccer.TestRunner.Tests.csproj
+```
+
+The scaffold intentionally rejects execution commands until catalog expansion, bounded scheduling,
+and run evidence are implemented.
+
+## 5. Test Layout and Parallel-Execution Discipline
+
+- A test project and its ordinary source are co-located under `tests/<Project>.Tests` and included
+  by the SDK's default compile rules.
+- Test source is not linked from sibling domain trees, and shared helpers are not silently injected
+  into every test project by directory-wide build targets.
+- The stable case catalog, not physical placement or a parsed display name, identifies work for the
+  future parallel scheduler.
+- Parallel eligibility is explicit. A parallel case must not depend on fixed shared output paths;
+  each child receives its own artifact directory. Work requiring repository-global or other shared
+  mutable state is declared exclusive.
+- Runner- and test-owned disposable output is confined beneath the repository's ignored `build/`
+  tree; operating-system temp directories and user-profile paths are not test workspaces. At the
+  current scaffold checkpoint, the test executables create no runtime files: the file-loading case
+  reads checked-in fixtures copied into the repository-local build output. The future scheduler
+  also redirects each child's `TMPDIR`, `TMP`, and `TEMP` variables to its isolated case directory.
+- The future contributor and CI entry point is one direct `dotnet` command. PowerShell glue is not
+  part of the TestRunner contract.

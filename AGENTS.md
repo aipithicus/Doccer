@@ -36,8 +36,24 @@ Do not guess or assume architectural details—consult the relevant project sour
 
 ### Solution Layout
 - `src/Doccer/`: Domain-neutral engine library. Dependencies flow strictly downward across internal folders (`Core` → `Algebra`/`Vectors` → `Validation`/`Collector` → `Facts` → `Origins` → `Materialization`).
-- `tests/Doccer.Tests/`: Standalone, dependency-free test runner and verification suite.
+- `src/Doccer.TestRunner/`: Repository-owned process-orchestration executable. The current scaffold
+  exposes help/version only; catalog expansion and scheduling remain the next slice.
+- `tests/Doccer.Tests/`: Standalone, dependency-free contract harness and verification suite.
+- `tests/Doccer.TestRunner.Tests/`: Standalone verification for the TestRunner boundary.
 - `docs/`: Markdown documentation and specifications.
+- Additional SDK projects belong under `src/<Project>` with matching verification under
+  `tests/<Project>.Tests`; register both in `Doccer.slnx` rather than adding a parallel `projects/`
+  root.
+- Each SDK project owns source beneath its project directory and uses default SDK compile inclusion
+  unless an exceptional test asset is explicitly documented. Do not link ordinary source from a
+  sibling tree or inject shared test source through ambient `Directory.Build.targets` rules.
+- Parallel-test eligibility is explicit case metadata, never inferred from folders, filenames,
+  classes, or assertion counts. Parallel cases must use their assigned artifact directory and must
+  not write fixed shared paths; nonparallel work is declared exclusive.
+- Runner- and test-owned disposable files must remain beneath the repository's ignored `build/`
+  tree. Do not use operating-system temp directories or user-profile paths for test artifacts.
+  Checked-in fixtures are read-only inputs, not runtime workspaces. When the TestRunner launches a
+  child, it must redirect `TMPDIR`, `TMP`, and `TEMP` to that case's repository-local work directory.
 
 ### Code & Dependency Standards
 - **Zero External Dependencies**: `src/Doccer/Doccer.csproj` has zero runtime NuGet dependencies.
@@ -49,4 +65,5 @@ Before concluding any implementation task or refactor, you must run and pass the
 
 ```powershell
 dotnet run --project tests/Doccer.Tests/Doccer.Tests.csproj
+dotnet run --project tests/Doccer.TestRunner.Tests/Doccer.TestRunner.Tests.csproj
 ```

@@ -1,0 +1,3 @@
+{"id":"heading","pattern":"^#+ .*$","kind":"heading","source":"markdown","level":"Line","scope":"PerLine","priority":10}
+
+{"id":"word","pattern":"\\w+","kind":"word","source":"markdown","options":["IgnoreCase","CultureInvariant"],"captureGroup":"0","timeoutMilliseconds":250}

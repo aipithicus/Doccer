@@ -14,128 +14,6 @@ internal static partial class Program
 {
     private static int _checks;
 
-    public static int Main()
-    {
-        try
-        {
-            MasterTopologyIsTotal();
-            TilingReconstructsAndAgreesWithLines();
-            LaminarAdmissionIsDeterministicAndStamped();
-            RunViewsTileTheMasterUnderEveryBreakKey();
-            LazySubstrateDefersUntouchedWork();
-            FrozenBatchPreservesClaims();
-            InternedColumnsRoundTripClaimStrings();
-            SpanSetObeysBooleanLawsAndMasterIdentity();
-            SpanSetRandomizedLawsHold();
-            AllenRelationsAreCompleteAndInvertible();
-            AllenRelationSetHasAClosedValueSurface();
-            AllenRelationSetBooleanLawsHoldExhaustively();
-            AllenRelationSetConverseAgreesWithTheClassifier();
-            AllenClassifierIsJepdOnSixBoundaries();
-            AllenCompositionMatchesIndependentD6Oracle();
-            AllenCompositionLawsHold();
-            AllenCanonicalCompositionIsNotFiniteMasterComposition();
-            StructuralValidatorsKeepTheirDistinctInvariants();
-            ScopedRegexCollectionCannotBridgeGaps();
-            SuppressionIsAQueryWithIdempotenceAndDuality();
-            DefectiveRuleFailsAtLoadTimeWithoutSideEffects();
-            ExecutionScopeComposesWithTheCallerRegionSet();
-            JsonlInventoryLoadsAndFailsWithProvenance();
-            DeclarativeValidationRunsWithoutDomainCode();
-            CollectionCommitsAtomically();
-            UnknownCaptureGroupFailsAtValidation();
-            UndefinedEnumValuesAreRejected();
-            EmptySpansHaveSetSemantics();
-            ReferenceJoinRelatesEveryPair();
-            ProjectMapsSpansOntoLineRanges();
-            EmitRunsHonorsACustomComparer();
-            RegexOptionsUnionCultureInvariantAtTheEngineBoundary();
-            SliceMintsAFragmentLocalChild();
-            RebaseIsATotalBijection();
-            RebaseCarriesSetsAndBatches();
-            CollectionCommutesWithRebase();
-            SlicesCompose();
-            GroupingByKeyIsADeterministicPartition();
-            ProjectionAndLineGroupsAreStampedTransposes();
-            LineMembershipIsADeclaredPolicy();
-            GapCadenceMeasuresTheTemplateFacts();
-            GapCadenceDeclaresItsBasis();
-            LookupOrderIsAQueryPolicy();
-            ClaimSelectionIsAnExactBatchValue();
-            ClaimSelectionBooleanLawsHoldExhaustively();
-            ClaimSelectionSeparatesMembershipFromOrderedProjection();
-            SelectionPopulationIntegrationsShareOnePath();
-            ClaimPairViewIsAnExactBasisStampedRelation();
-            ClaimPairViewProjectsSemijoinsAndConverse();
-            ClaimPairCompositionMatchesItsIndependentOracleAndWitnesses();
-            ClaimPairCompositionLawsHoldOnBoundedRelations();
-            ClaimPairAllenAbstractionBridgeIsOneWay();
-            PairingWitnessesTwoDelimiterFamilies();
-            PairingFaultResidueIsCompleteAndTopOnly();
-            PairingRefusesAmbiguousInputsAndRetainsItsStamps();
-            PairingMatchesAnIndependentBoundedStackOracle();
-            LocatedRelationHasAConcreteBasisAndReferenceAlgebra();
-            LocatedRelationMatchesBoundedExhaustiveOracles();
-            LocatedRelationRebasesExactlyThroughSlices();
-            CandidateRegionGraphPreservesOccurrenceIdentityUntilProjection();
-            ReachabilityViewKeepsGraphStampAndDiagnostics();
-            PartitionViewValidatesExactIdentityBearingPaths();
-            FirstOrdinalSegmentationWitnessesRequiredCases();
-            FirstOrdinalSegmentationMatchesBoundedPathOracle();
-            AdditivePathPolicySnapshotsAnExactObjective();
-            PathSelectionProblemValidatesExactAdmissibility();
-            AdditivePathSelectionRetainsDecisionsAndResiduals();
-            AdditivePathSelectionMatchesBoundedOptimizerOracle();
-            StructuralValidatorsMatchBoundedOracles();
-            LaminarAdmissionMatchesBoundedOracle();
-            NearestContainerProjectionIsExplicit();
-            HierarchyViewRetainsExplicitDag();
-            HierarchyViewMatchesBoundedDagOracle();
-            ResolutionMapsSeparateIncidenceFromAggregation();
-            ResolutionIncidenceMatchesBoundedEndpointOracle();
-            FactKeyIsAMasterRelativeSemanticValue();
-            CanonicalFactTableCollapsesAndOrdersProposals();
-            CanonicalFactTableEqualityIsProposalOrderIndependent();
-            FactReferenceIsAnExactTableHandle();
-            SupportEdgeIsAnOrderedEvidenceValue();
-            SupportHypergraphValidatesExactBasesAndRetainsAlternatives();
-            K5aHierarchyDiamondWitnessSuppliesAncestorSupport();
-            GroundRuleIsAnOrderedGroundEvidenceValue();
-            SaturationProblemValidatesAndCanonicalizesRules();
-            FactSaturationHandlesFinitePositiveClosure();
-            FactSaturationRetainsCompleteEnabledSupport();
-            FactSaturationRebasesThroughKeyOrderShifts();
-            FactSaturationIsPermutationIndependent();
-            K5bHierarchyDiamondSaturatesCanonically();
-            FactSaturationMatchesIndependentBoundedOracle();
-            BooleanVectorIsALogicalSequenceValue();
-            BooleanVectorAlgebraMatchesIndependentOracle();
-            BooleanPrefixParityMatchesIndependentOracle();
-            BooleanVectorLongAndTailCasesMatchOracle();
-            Utf16UnitMaskEnforcesBasisAndTypedContinuity();
-            Utf16UnitClassificationPropagatesUncertainty();
-            Utf16UnitHarvestIsScalarSafeAndComplete();
-            Utf16ClaimEmissionIsTransactionalAndEvidenceBearing();
-            BooleanVectorSupportsATestLocalByteBasis();
-            OriginBasisAndRelationAreExactCanonicalValues();
-            OriginCompositionMatchesIndependentBooleanMatrixOracle();
-            OriginProjectionPreservesMaterialShapeAndSlotIdentity();
-            TextSliceEmbedsAsExactFunctionalOrigin();
-            MaterializationConstructionSnapshotsAndRefusesInvalidPlans();
-            MaterializationCoversRequiredMaterialShapes();
-            MaterializationPreservesUtf16AtomBoundaries();
-            MaterializationResultRetainsEvidenceAndComposesExactly();
-            MaterializationMatchesIndependentFinitePlanOracle();
-            Console.WriteLine($"doccer contract harness: {_checks} checks passed");
-            return 0;
-        }
-        catch (Exception exception)
-        {
-            Console.Error.WriteLine(exception);
-            return 1;
-        }
-    }
-
     private static void MasterTopologyIsTotal()
     {
         var master = new TextMaster("topology", 0, "a😀\r\nb");
@@ -1477,33 +1355,31 @@ internal static partial class Program
             duplicate.Message.Contains("already defined on line 1", StringComparison.Ordinal),
             "duplicate error names the first definition");
 
-        var path = Path.Combine(Path.GetTempPath(), $"doccer-inventory-{Guid.NewGuid():N}.jsonl");
+        var validPath = Path.Combine(
+            AppContext.BaseDirectory,
+            "Fixtures",
+            "pattern-rules.valid.jsonl");
+        var fromFile = PatternRuleLoader.LoadFile(validPath);
+        Equal(2, fromFile.Count, "rules load from a UTF-8 JSONL file");
+        Equal("heading", fromFile[0].Id, "file-loaded rule identity");
+
+        var invalidPath = Path.Combine(
+            AppContext.BaseDirectory,
+            "Fixtures",
+            "pattern-rules.invalid.jsonl");
+        var fileFailure = (PatternRuleLoadException?)null;
         try
         {
-            File.WriteAllLines(path, inventory, new UTF8Encoding(false));
-            var fromFile = PatternRuleLoader.LoadFile(path);
-            Equal(2, fromFile.Count, "rules load from a UTF-8 JSONL file");
-            Equal("heading", fromFile[0].Id, "file-loaded rule identity");
-
-            File.WriteAllLines(path, new[] { """{"id":"a","kind":"k","source":"s"}""" }, new UTF8Encoding(false));
-            var fileFailure = (PatternRuleLoadException?)null;
-            try
-            {
-                PatternRuleLoader.LoadFile(path);
-            }
-            catch (PatternRuleLoadException exception)
-            {
-                fileFailure = exception;
-            }
-
-            True(fileFailure is not null, "a defective file fails loudly");
-            Equal(path, fileFailure!.Origin, "file failure carries the path");
-            Equal(1, fileFailure.LineNumber, "file failure carries the line");
+            PatternRuleLoader.LoadFile(invalidPath);
         }
-        finally
+        catch (PatternRuleLoadException exception)
         {
-            File.Delete(path);
+            fileFailure = exception;
         }
+
+        True(fileFailure is not null, "a defective file fails loudly");
+        Equal(invalidPath, fileFailure!.Origin, "file failure carries the path");
+        Equal(1, fileFailure.LineNumber, "file failure carries the line");
     }
 
     private static PatternRuleLoadException LoadFails(string line, string name)

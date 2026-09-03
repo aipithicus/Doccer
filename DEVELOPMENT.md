@@ -20,16 +20,18 @@ dotnet build
 ```
 
 ### Run the Test & Verification Suite
-Doccer uses a dependency-free, high-assurance test runner:
+Doccer uses a dependency-free, high-assurance executable contract harness:
 ```powershell
-# Direct execution of the test suite
+# Execute the complete contract and law suite
 dotnet run --project tests/Doccer.Tests/Doccer.Tests.csproj
+
+# Verify the current TestRunner scaffold boundary
+dotnet run --project tests/Doccer.TestRunner.Tests/Doccer.TestRunner.Tests.csproj
 ```
 
-Or via standard `dotnet test`:
-```powershell
-dotnet test
-```
+`Doccer.Tests` is an executable harness rather than a test-SDK project. `dotnet test` does not
+execute its checks. Until `Doccer.TestRunner` scheduling lands, run both executable verification
+projects above as the canonical repository gate.
 
 ### Build a Release Package
 ```powershell
@@ -48,14 +50,30 @@ Doccer/
 ├── Directory.Build.props        # Centralized build properties and compiler settings
 ├── Doccer.slnx                  # Modern XML solution definition
 ├── src/
-│   └── Doccer/                  # Core domain-neutral C# library (zero external dependencies)
-│       └── Doccer.csproj
+│   ├── Doccer/                  # Core domain-neutral C# library (zero external dependencies)
+│   │   └── Doccer.csproj
+│   └── Doccer.TestRunner/       # Buildable process-orchestrator scaffold
+│       └── Doccer.TestRunner.csproj
 ├── tests/
-│   └── Doccer.Tests/            # Standalone test runner and verification suite
-│       └── Doccer.Tests.csproj
+│   ├── Doccer.Tests/            # Catalogued contract harness and verification suite
+│   │   └── Doccer.Tests.csproj
+│   └── Doccer.TestRunner.Tests/ # TestRunner scaffold verification
+│       └── Doccer.TestRunner.Tests.csproj
 ├── build/                       # Centralized build outputs (bin/ and obj/) — gitignored
 └── release/                     # Packaged NuGet distributions — gitignored
 ```
+
+Additional production or executable SDK projects belong at `src/<Project>`, with matching
+verification projects at `tests/<Project>.Tests`. Register both in `Doccer.slnx`; do not introduce
+a second `projects/` root. Keep a project's ordinary source beneath its own project directory and
+let the SDK include it by default; avoid cross-tree `Compile Include` globs and ambient build rules
+that silently inject shared test source.
+
+The scaffolded `Doccer.TestRunner` is a direct .NET executable rather than a PowerShell-wrapped
+workflow. It currently exposes only honest help/version behavior; catalog expansion, process
+scheduling, and run artifacts remain unimplemented. Test cases admitted to bounded parallel
+execution declare that posture explicitly; directory placement and naming organize ownership but
+do not imply concurrency safety.
 
 ---
 
@@ -79,7 +97,7 @@ For deep technical details, refer to the documentation tree:
 - [**AGENTS.md**](AGENTS.md) — Internal layer ordering and contributor invariants.
 - [**Verification & Testing Methodology**](docs/testing.md) — Algebraic law testing, oracles, and verification baselines.
 - [**Architecture Overview**](docs/architecture/overview.md) — Capability library vs. engine, coordinate spaces, and Unicode posture.
-- [**Governing Doctrine**](docs/architecture/doctrine.md) — Core tenets and feature admission standards.
+- [**Design Principles**](docs/architecture/design-principles.md) — Core tenets and feature admission standards.
 - [**Carriers & Naming Canon**](docs/specification/carriers.md) — Many-sorted algebra ($P, L, I, C, F, O, B, U$) and naming rules.
 - [**Contracts Catalog**](docs/specification/contracts.md) — Complete reference of implemented subsystems and data structures.
-- [**Scope & Non-Goals**](docs/specification/non-goals.md) — Deliberately absent features and admission gate criteria.
+- [**Capability Outlook**](docs/specification/capability-outlook.md) — Possible extensions, non-goals, and admission questions.

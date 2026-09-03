@@ -58,9 +58,16 @@ Validation tiers / inventories    + cross-examination
 Doccer uses a standalone, dependency-free verification harness with bounded law checks and independent-oracle coverage:
 
 ```powershell
-# Run all tests and conformance checks
+# Run the complete contract harness and law checks
 dotnet run --project tests/Doccer.Tests/Doccer.Tests.csproj
+
+# Verify the current TestRunner scaffold boundary
+dotnet run --project tests/Doccer.TestRunner.Tests/Doccer.TestRunner.Tests.csproj
 ```
+
+The contract harness also exposes its 108 current top-level cases through a versioned catalog and
+supports exact single-case execution. The separate `Doccer.TestRunner` project is scaffolded but
+does not schedule those cases yet.
 
 ---
 

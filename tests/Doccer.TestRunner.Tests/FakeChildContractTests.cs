@@ -27,6 +27,7 @@ internal static partial class Program
 
         var help = RunFakeChild(new[] { "--help" });
         Equal(0, help.ExitCode, "fake child help exit");
+        Contains("--stdout-bytes", help.StandardOutput, "fake child bounded flood surface");
         Contains("--spawn-child-milliseconds", help.StandardOutput, "fake child spawn surface");
         Contains("--ignore-cancel", help.StandardOutput, "fake child cancellation surface");
 

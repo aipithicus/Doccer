@@ -45,6 +45,7 @@ internal static class Program
 
                 Options:
                   --stdout <text>
+                  --stdout-bytes <n>
                   --stderr <text>
                   --delay-milliseconds <n>
                   --exit-code <0..255>
@@ -67,6 +68,12 @@ internal static class Program
             if (options.StandardOutput is not null)
             {
                 await stdout.WriteLineAsync(options.StandardOutput).ConfigureAwait(false);
+            }
+
+            if (options.StandardOutputBytes > 0)
+            {
+                await WriteRepeatedAsync(stdout, 'o', options.StandardOutputBytes)
+                    .ConfigureAwait(false);
             }
 
             if (options.StandardError is not null)
@@ -182,8 +189,21 @@ internal static class Program
             ?? throw new InvalidOperationException("The fake descendant process did not start.");
     }
 
+    private static async Task WriteRepeatedAsync(TextWriter writer, char value, int count)
+    {
+        var buffer = new char[Math.Min(count, 16 * 1024)];
+        Array.Fill(buffer, value);
+        while (count > 0)
+        {
+            var current = Math.Min(count, buffer.Length);
+            await writer.WriteAsync(buffer.AsMemory(0, current)).ConfigureAwait(false);
+            count -= current;
+        }
+    }
+
     private sealed record FakeChildOptions(
         string? StandardOutput,
+        int StandardOutputBytes,
         string? StandardError,
         int DelayMilliseconds,
         int ExitCode,
@@ -199,10 +219,21 @@ internal static class Program
                 (StringComparer.Ordinal.Equals(args[0], "--help") ||
                  StringComparer.Ordinal.Equals(args[0], "-h")))
             {
-                return new FakeChildOptions(null, null, 0, 0, null, string.Empty, null, false, true);
+                return new FakeChildOptions(
+                    null,
+                    0,
+                    null,
+                    0,
+                    0,
+                    null,
+                    string.Empty,
+                    null,
+                    false,
+                    true);
             }
 
             string? standardOutput = null;
+            var standardOutputBytes = 0;
             string? standardError = null;
             var delayMilliseconds = 0;
             var exitCode = 0;
@@ -225,6 +256,13 @@ internal static class Program
                 {
                     case "--stdout":
                         standardOutput = NextValue(args, ref index, option);
+                        break;
+                    case "--stdout-bytes":
+                        standardOutputBytes = ParseInteger(
+                            NextValue(args, ref index, option),
+                            option,
+                            minimum: 0,
+                            maximum: 16 * 1024 * 1024);
                         break;
                     case "--stderr":
                         standardError = NextValue(args, ref index, option);
@@ -272,6 +310,7 @@ internal static class Program
 
             return new FakeChildOptions(
                 standardOutput,
+                standardOutputBytes,
                 standardError,
                 delayMilliseconds,
                 exitCode,

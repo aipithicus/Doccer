@@ -6,7 +6,7 @@ Doccer uses a high-assurance verification approach for mathematical interval alg
 
 ## 1. Verification Philosophy
 
-- **Zero-Dependency Harness**: The contract harness (`Doccer.Tests`) executes as a standalone program without third-party test framework overhead, enabling rapid, deterministic execution. Its versioned catalog exposes independently addressable cases. The separate `Doccer.TestRunner` has frozen versioned plan/run/event/artifact/receipt and fake-child contracts and will orchestrate explicitly eligible cases with bounded process parallelism; execution and scheduling have not landed yet.
+- **Zero-Dependency Harness**: The contract harness (`Doccer.Tests`) executes as a standalone program without third-party test framework overhead, enabling rapid, deterministic execution. Its versioned catalog exposes independently addressable cases. The separate `Doccer.TestRunner` has frozen versioned plan/run/event/artifact/receipt and fake-child contracts, expands the strict native catalog into exact case processes, and executes them with bounded parallelism and explicit exclusive barriers.
 - **Algebraic Law Verification**: Where a capability has algebraic laws (associativity, distributivity, converse, identity, closure), the harness checks them through exhaustive finite censuses or independent reference oracles where tractable.
 - **Oracle & Census Testing**: Complex optimization routines (such as DAG path selection or laminarization) are validated against independent, brute-force oracles and exhaustive state censuses over bounded inputs.
 - **Preservation of Residue**: Tests explicitly assert that unresolved or crossing structures (e.g. crossing laminar spans, unclosed delimiters, unmapped origin slices) are captured as structured residual data rather than silently ignored.
@@ -54,17 +54,22 @@ The repository maintains specific baseline verification suites:
 
 ## 4. Running the Suites
 
-To execute the full verification suite:
+To execute the catalogued engine suite through the canonical checked-in plan:
 
 ```powershell
-# Run the standalone contract harness and law suite
-dotnet run --project tests/Doccer.Tests/Doccer.Tests.csproj
+dotnet run --project src/Doccer.TestRunner/Doccer.TestRunner.csproj -- run --plan tests/test-plan.json
 ```
 
-This no-argument command remains the serial compatibility and release gate. The current harness
-emits one bounded receipt. It also exposes machine-readable discovery and exact case selection:
+The plan names the `Doccer.Tests` executable harness explicitly and expands its 108 catalogued cases
+without crawling the `tests/` tree. This direct .NET command is the contributor and CI engine entry
+point: future CI wiring must invoke it unchanged. A shell wrapper is not part of the contract. The
+runner writes one bounded receipt to stdout.
+
+The direct no-argument harness remains the serial compatibility and release check. It also emits
+one bounded receipt and exposes machine-readable discovery and exact case selection:
 
 ```powershell
+dotnet run --project tests/Doccer.Tests/Doccer.Tests.csproj
 dotnet run --project tests/Doccer.Tests/Doccer.Tests.csproj -- list --format json
 dotnet run --project tests/Doccer.Tests/Doccer.Tests.csproj -- run --case MasterTopologyIsTotal --format json
 ```
@@ -75,20 +80,43 @@ On failure, use progressive disclosure instead of rerunning the whole suite with
 dotnet run --project tests/Doccer.Tests/Doccer.Tests.csproj -- run --case <stable-id> --details
 ```
 
-To verify the currently implemented TestRunner contracts and fake-child boundary:
+To verify the TestRunner contracts, native catalog adapter, and fake-child boundary:
 
 ```powershell
 dotnet run --project tests/Doccer.TestRunner.Tests/Doccer.TestRunner.Tests.csproj
 # Add -- --details only after a failing receipt requires its exception stack.
 ```
 
-The contract suite covers strict plan parsing, deterministic command expansion with preserved
-deferred harness-source residue, explicit parallel/exclusive posture, compact artifact containment
-and path budgets, reserved child environment, UTC/result invariants, complete summary accounting,
-append-only event/lifecycle rules, exit precedence, a bounded one-line receipt, selective detail
-materialization, and the controllable fake child. The runner intentionally rejects execution
-commands until CLI plan loading, process execution, harness-catalog expansion, bounded scheduling,
-and run writing land.
+The contract suite loads the checked-in plan and covers strict plan parsing; native catalog schema,
+ordinal, identity, and concurrency validation; one-build-per-project expansion through evaluated
+`TargetPath`; exact single-case argument vectors; a live canary over all 108 Doccer cases; explicit
+parallel/exclusive posture; compact artifact containment and path budgets; reserved child
+environment; UTC/result invariants; complete summary accounting; append-only event/lifecycle
+rules; exit precedence; a bounded one-line receipt; selective detail materialization; and the
+controllable fake child. It also exercises the direct-process execution boundary across a clean pass,
+captured streams and artifacts, bounded output flooding, nonzero exit, timeout with descendant
+termination, cancellation, and launch failure. Multi-process contracts verify the rolling worker
+bound, drain-before-exclusive and resume-after-exclusive barriers, ordered aggregation, and complete
+`not_started` accounting after cancellation. Native result contracts verify that clean structured
+harness stdout becomes assertion metadata rather than retained detail.
+
+To select a nondefault worker bound:
+
+```powershell
+dotnet run --project src/Doccer.TestRunner/Doccer.TestRunner.csproj -- run --plan tests/test-plan.json --max-parallel 8
+```
+
+The plan may contain `command` and `executable_harness` entries. A harness project is built once,
+resolved from evaluated SDK state, and queried with `list --format json`; every catalog case becomes
+an exact `dotnet exec <target> run --case <id> --format json` work item whose concurrency comes from
+the catalog. Its logical identity is the unambiguous two-segment form `<source>/<case>`, with `~`
+and `/` escaped as JSON Pointer segments; display names never become filesystem names. Commands
+retain their plan-declared concurrency, and all expanded identities are sorted ordinally. The
+runner admits parallel items through a rolling window bounded by `--max-parallel`. The option
+accepts 1 through 256 and defaults to the smaller of 8 and the available processor count. An
+exclusive item divides the frozen order into phases: all preceding parallel work drains, the item
+runs alone, and later work is not admitted until it finishes. Results are aggregated in frozen plan
+order regardless of completion order.
 
 ## 5. Test Layout and Parallel-Execution Discipline
 
@@ -97,7 +125,7 @@ and run writing land.
 - Test source is not linked from sibling domain trees, and shared helpers are not silently injected
   into every test project by directory-wide build targets.
 - The stable case catalog, not physical placement or a parsed display name, identifies work for the
-  future parallel scheduler.
+  runner and its scheduler.
 - Parallel eligibility is explicit. A parallel case must not depend on fixed shared output paths;
   each child receives its own artifact directory. Work requiring repository-global or other shared
   mutable state is declared exclusive.
@@ -105,15 +133,16 @@ and run writing land.
   tree; operating-system temp directories and user-profile paths are not test workspaces. The
   contract harness creates no runtime files and reads checked-in fixtures copied into the
   repository-local build output. The TestRunner contract suite deliberately exercises one fake
-  child artifact beneath a unique build-output directory and removes it afterward. The future
-  scheduler also redirects each child's `TMPDIR`, `TMP`, and `TEMP` variables to its isolated case
-  directory.
-- The future contributor and CI entry point is one direct `dotnet` command. PowerShell glue is not
-  part of the TestRunner contract.
+  child and complete run evidence beneath unique build-output directories and removes its test
+  fixtures afterward. The runner redirects each child's `TMPDIR`, `TMP`, and `TEMP` variables to its
+  isolated case directory. Harness build, target evaluation, and catalog discovery redirect the
+  same variables to one compact `build/hx-*` workspace and remove that workspace after expansion.
+- The contributor and CI entry point is one direct `dotnet` command. PowerShell glue is not part of
+  the TestRunner contract.
 
 ## 6. Evidence Disclosure and Console Hygiene
 
-The future writer uses a deliberately shallow physical layout:
+The writer uses a deliberately shallow physical layout:
 
 ```text
 build/test-runs/20260903T120000Z-75f0f79dd895441c/
@@ -146,13 +175,23 @@ Each redirected child stream is drained without relaying it to the console. A st
 most 256 KiB: for a larger stream, 64 KiB from the head and 192 KiB from the tail. Its result records
 the observed byte count, retained byte count, and explicit truncation flag, so capture limits never
 masquerade as complete output. `summary.json` includes direct repository-relative references for
-the cases that materialized details.
+the cases that materialized details. Build and catalog output is likewise captured rather than
+relayed. A catalog must fit completely within the 256 KiB capture budget and decode as one strict
+UTF-8 JSON document; truncation, stderr, noise, or an empty catalog is an expansion failure whose
+console diagnostic is separately bounded. A selected native harness case must return one strict
+versioned JSON result agreeing with its case ID and process exit classification. Valid result stdout
+is consumed into summary status and assertion-count metadata; malformed protocol output is retained
+as bounded detail and classified as an infrastructure error.
 
-The working evidence root retains at most 16 finalized run directories. A retention pass considers
-only direct children with a valid completed `summary.json`; active, partial, and unrecognized
-directories are never inferred safe to delete. The next receipt reports how many finalized roots
-were pruned. Evidence that needs longer-lived preservation must be exported deliberately from the
-ignored `build/` tree.
+The retention pass keeps the newest 16 recognized finalized runs, ordered by the
+`completedAtUtc` value in their valid summaries and then by directory name for a deterministic tie
+break. Recognition requires an exact generated directory identity, matching run ID and requested
+timestamp, strict summary schema and accounting, non-reparse plan/event/summary evidence, and valid
+in-run detail references. Only direct inactive children outside that newest set are removed.
+Active, partial, malformed, redirected, and otherwise unrecognized directories are preserved; an
+active finalized run may therefore keep the root temporarily above 16 until a later invocation.
+`prunedRunCount` reports only directories actually removed. Evidence that needs longer-lived
+preservation must be exported deliberately before it ages out of the ignored `build/` tree.
 
 Completed execution writes exactly one compact `doccer-test-receipt` JSON record to stdout. It is
 capped at 768 characters and reports the aggregate outcome, exit code, counts, elapsed time, and a

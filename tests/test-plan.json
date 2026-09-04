@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "protocol": "doccer-test-plan",
+  "entries": [
+    {
+      "id": "doccer.contracts",
+      "displayName": "Doccer contract harness",
+      "kind": "executable_harness",
+      "project": "tests/Doccer.Tests/Doccer.Tests.csproj",
+      "arguments": [],
+      "workingDirectory": ".",
+      "environment": {},
+      "timeoutMilliseconds": 30000,
+      "group": "contracts"
+    }
+  ]
+}

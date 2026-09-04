@@ -37,12 +37,15 @@ Do not guess or assume architectural details—consult the relevant project sour
 ### Solution Layout
 - `src/Doccer/`: Domain-neutral engine library. Dependencies flow strictly downward across internal folders (`Core` → `Algebra`/`Vectors` → `Validation`/`Collector` → `Facts` → `Origins` → `Materialization`).
 - `src/Doccer.TestRunner/`: Repository-owned process-orchestration executable. The current contract
-  scaffold exposes help/version and freezes plan, run, event, result, artifact, receipt, exit,
-  lifecycle, and child-environment semantics; CLI plan loading, process execution, harness
-  expansion, and scheduling remain ahead.
+  expands command entries and strict native executable-harness catalogs, building and resolving
+  each distinct harness project once. It executes parallel items through a bounded rolling window
+  and drains that window before running each exclusive item alone. Direct process launch,
+  timeout/cancellation, complete queued-item accounting, bounded capture, evidence writing, native
+  harness-result assimilation, finalized-run pruning, and one receipt are implemented.
 - `tests/Doccer.Tests/`: Standalone, dependency-free contract harness and verification suite.
 - `tests/Doccer.TestRunner.FakeChild/`: Test-only controllable child-process fixture.
 - `tests/Doccer.TestRunner.Tests/`: Standalone verification for the TestRunner boundary.
+- `tests/test-plan.json`: Checked-in canonical process-isolated engine verification plan.
 - `docs/`: Markdown documentation and specifications.
 - Additional production SDK projects belong under `src/<Project>` with matching verification under
   `tests/<Project>.Tests`; register both in `Doccer.slnx` rather than adding a parallel `projects/`
@@ -53,11 +56,16 @@ Do not guess or assume architectural details—consult the relevant project sour
   sibling tree or inject shared test source through ambient `Directory.Build.targets` rules.
 - Parallel-test eligibility is explicit case metadata, never inferred from folders, filenames,
   classes, or assertion counts. Parallel cases must use their assigned artifact directory and must
-  not write fixed shared paths; nonparallel work is declared exclusive.
+  not write fixed shared paths; nonparallel work is declared exclusive. The frozen logical-ID order
+  defines barrier position: preceding parallel work drains, the exclusive item runs alone, and only
+  then may later parallel work start. `--max-parallel` accepts 1 through 256 and defaults to the
+  smaller of 8 and the available processor count.
 - Runner- and test-owned disposable files must remain beneath the repository's ignored `build/`
   tree. Do not use operating-system temp directories or user-profile paths for test artifacts.
   Checked-in fixtures are read-only inputs, not runtime workspaces. When the TestRunner launches a
   child, it must redirect `TMPDIR`, `TMP`, and `TEMP` to that case's repository-local work directory.
+  Harness build/evaluation/discovery processes use one compact `build/hx-*` workspace and remove it
+  after the catalog has been frozen.
 - TestRunner run directories are direct children of `build/test-runs/` and use compact opaque
   physical identities; display names belong in JSON evidence, not paths. Runner-managed paths are
   capped at 220 characters. Child artifact paths are relative, have at most three components, cap
@@ -72,11 +80,15 @@ Do not guess or assume architectural details—consult the relevant project sour
   truncation or omission.
 - Clean passing cases are represented in `summary.json` and do not get duplicate case directories.
   A case detail directory is retained only for a nonpassing result, nonempty captured stream, or
-  child artifact. Per-case `tmp/` directories are execution workspaces and are removed at
-  finalization.
-- Keep at most 16 finalized run directories beneath `build/test-runs/`. Retention may consider only
-  direct children with a valid completed summary, must never prune an active or unrecognized
-  directory, and must report its prune count in the new run's receipt.
+  child artifact. A valid native harness result is consumed into status/assertion metadata rather
+  than retained as ordinary stdout. Per-case `tmp/` directories are execution workspaces and are
+  removed at finalization.
+- Retention keeps the newest 16 recognized finalized run directories beneath `build/test-runs/`,
+  ordered by their completed-summary timestamp with a deterministic directory-name tie break. It
+  considers only direct, non-reparse children with a valid identity-bound completed summary plus
+  plan and event evidence. Active, partial, malformed, and otherwise unrecognized directories are
+  never pruned; active finalized runs may temporarily keep the root above the target until a later
+  invocation. The new run's receipt reports only directories actually removed.
 - The runner is a direct .NET process/argument/environment contract. Nushell, PowerShell, Bash, and
   other shells may invoke it, but shell syntax and shell-specific pipeline behavior are not part of
   its plans, scheduling, evidence, or verification contracts.
@@ -90,10 +102,12 @@ Do not guess or assume architectural details—consult the relevant project sour
 Before concluding any implementation task or refactor, you must run and pass the full test suite:
 
 ```powershell
-dotnet run --project tests/Doccer.Tests/Doccer.Tests.csproj
+dotnet run --project src/Doccer.TestRunner/Doccer.TestRunner.csproj -- run --plan tests/test-plan.json
 dotnet run --project tests/Doccer.TestRunner.Tests/Doccer.TestRunner.Tests.csproj
 ```
 
-Report these bounded receipts. If `Doccer.Tests` names a failing case, rerun only that case with
+Report these bounded receipts. The direct no-argument `Doccer.Tests` execution remains the serial
+compatibility and release check when its catalog or entry point changes. If the TestRunner receipt
+names a failing case, inspect its `summaryPath` before rerunning only that harness case with
 `--details`; use the TestRunner contract suite's own `--details` switch when needed. Do not paste
 unselected catalogs or complete log trees into context.

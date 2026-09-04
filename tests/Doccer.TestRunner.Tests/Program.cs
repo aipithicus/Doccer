@@ -20,19 +20,37 @@ internal static partial class Program
 
         try
         {
-            EmptyInvocationShowsTheScaffoldBoundary();
+            EmptyInvocationShowsTheAvailableSurface();
             HelpIsAnAvailableCommand();
             VersionIsAnAvailableCommand();
-            ExecutionCommandsFailLoudlyUntilImplemented();
+            SingleRunCommandValidatesBeforeWriting();
             PlanSchemaAndCommandExpansionAreDeterministic();
             PlanValidationRejectsAmbiguityAndEscapes();
+            ExecutableHarnessCatalogSchemaIsStrict();
+            ExecutableHarnessExpansionIsDeterministic();
+            ExecutableHarnessExpansionFailuresAreLoudAndClean();
+            CheckedInPlanExpandsLiveDoccerCatalog();
+            ExecutableHarnessResultsAreStrictAndAssimilated();
+            BoundedSchedulerEnforcesParallelAndExclusivePhases();
+            BoundedSchedulerStopsAdmissionAndAccountsForQueuedItems();
+            FinalizedRunRetentionKeepsTheNewestSixteen();
+            FinalizedRunRetentionPreservesActiveAndUnrecognizedDirectories();
+            FinalizedRunRetentionSerializesConcurrentPruners();
             ArtifactLayoutIsContainedAndCollisionSafe();
             ChildEnvironmentIsIsolatedAndReserved();
+            BoundedProcessCaptureRetainsHeadAndTail();
+            ArtifactInspectionEnforcesPhysicalBudgets();
             EventContractAndLifecycleTransitionsAreExact();
             RunContractsAccountForEveryPlannedItem();
             ResultStatusAndExitPrecedenceAreExact();
             ReceiptAndDetailMaterializationAreBounded();
             FakeChildIsControllableAndContainsArtifacts();
+            SingleCommandExecutionWritesProgressiveEvidence();
+            MultipleCommandExecutionUsesBoundedExclusiveScheduling();
+            CancellationAccountsForEveryUnstartedItem();
+            CompletedRunReceiptReportsRetentionPruning();
+            CurrentRunClaimLivesThroughReceiptWriting();
+            HarnessExpansionFailuresBeforeWriting();
             WriteReceipt($"doccer test receipt: status=passed suite=doccer.test-runner checks={_checks}");
             return 0;
         }
@@ -63,7 +81,7 @@ internal static partial class Program
         writer.WriteLine(singleLine);
     }
 
-    private static void EmptyInvocationShowsTheScaffoldBoundary()
+    private static void EmptyInvocationShowsTheAvailableSurface()
     {
         var stdout = new StringWriter();
         var stderr = new StringWriter();
@@ -71,7 +89,8 @@ internal static partial class Program
         var exitCode = global::Doccer.TestRunner.Program.Run(Array.Empty<string>(), stdout, stderr);
 
         Equal(0, exitCode, "empty invocation exit code");
-        Contains("Doccer.TestRunner contract scaffold", stdout.ToString(), "empty invocation help");
+        Contains("Doccer.TestRunner", stdout.ToString(), "empty invocation help");
+        Contains("run --plan", stdout.ToString(), "empty invocation run surface");
         Equal(string.Empty, stderr.ToString(), "empty invocation stderr");
     }
 
@@ -99,16 +118,71 @@ internal static partial class Program
         Equal(string.Empty, stderr.ToString(), "version stderr");
     }
 
-    private static void ExecutionCommandsFailLoudlyUntilImplemented()
+    private static void SingleRunCommandValidatesBeforeWriting()
     {
         var stdout = new StringWriter();
         var stderr = new StringWriter();
 
         var exitCode = global::Doccer.TestRunner.Program.Run(new[] { "run" }, stdout, stderr);
 
-        Equal(2, exitCode, "unavailable command exit code");
-        Equal(string.Empty, stdout.ToString(), "unavailable command stdout");
-        Contains("not available in the TestRunner contract scaffold", stderr.ToString(), "unavailable command error");
+        Equal(2, exitCode, "missing plan exit code");
+        Equal(string.Empty, stdout.ToString(), "missing plan stdout");
+        Contains("requires --plan", stderr.ToString(), "missing plan error");
+
+        var options = TestRunnerCommandLine.ParseRun(
+            new[]
+            {
+                "run",
+                "--plan", "plans/one.json",
+                "--repository-root", ".",
+                "--configuration", "Release",
+                "--max-parallel", "3",
+            },
+            ContractRepositoryRoot);
+        Equal(ContractRepositoryRoot, options.RepositoryRoot, "CLI repository root default base");
+        Equal("plans/one.json", options.PlanRelativePath, "CLI plan normalization");
+        Equal("Release", options.Configuration, "CLI configuration");
+        Equal(3, options.MaxParallel, "CLI maximum parallelism");
+        Throws<TestRunnerUsageException>(
+            () => TestRunnerCommandLine.ParseRun(
+                new[] { "run", "--plan", "one.txt" },
+                ContractRepositoryRoot),
+            "CLI non-JSON plan rejection");
+        Throws<TestRunnerUsageException>(
+            () => TestRunnerCommandLine.ParseRun(
+                new[] { "run", "--plan", "one.json", "--configuration", "bad:name" },
+                ContractRepositoryRoot),
+            "CLI nonportable configuration rejection");
+        Throws<TestRunnerUsageException>(
+            () => TestRunnerCommandLine.ParseRun(
+                new[] { "run", "--plan", "one.json", "--plan", "two.json" },
+                ContractRepositoryRoot),
+            "CLI duplicate option rejection");
+        Throws<TestRunnerUsageException>(
+            () => TestRunnerCommandLine.ParseRun(
+                new[] { "run", "--unknown", "value", "--plan", "one.json" },
+                ContractRepositoryRoot),
+            "CLI unknown option rejection");
+        Throws<TestRunnerUsageException>(
+            () => TestRunnerCommandLine.ParseRun(
+                new[] { "run", "--plan", "one.json", "--max-parallel", "0" },
+                ContractRepositoryRoot),
+            "CLI zero parallelism rejection");
+        Throws<TestRunnerUsageException>(
+            () => TestRunnerCommandLine.ParseRun(
+                new[] { "run", "--plan", "one.json", "--max-parallel", "many" },
+                ContractRepositoryRoot),
+            "CLI malformed parallelism rejection");
+        Throws<TestRunnerUsageException>(
+            () => TestRunnerCommandLine.ParseRun(
+                new[]
+                {
+                    "run",
+                    "--plan", "one.json",
+                    "--max-parallel", (TestSchedulingContract.MaximumParallelism + 1).ToString(),
+                },
+                ContractRepositoryRoot),
+            "CLI excessive parallelism rejection");
     }
 
     private static void Contains(string expected, string actual, string name)

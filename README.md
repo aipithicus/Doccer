@@ -55,21 +55,29 @@ Validation tiers / inventories    + cross-examination
 
 ### Running the Test Suite
 
-Doccer uses a standalone, dependency-free verification harness with bounded law checks and independent-oracle coverage:
+Doccer uses a standalone, dependency-free verification harness with bounded law checks and
+independent-oracle coverage. The checked-in plan is the canonical process-isolated engine gate:
 
 ```powershell
-# Run the complete contract harness and law checks
-dotnet run --project tests/Doccer.Tests/Doccer.Tests.csproj
+# Run all catalogued engine cases with bounded parallelism
+dotnet run --project src/Doccer.TestRunner/Doccer.TestRunner.csproj -- run --plan tests/test-plan.json
 
-# Verify the current TestRunner contracts and fake-child boundary
+# Verify the TestRunner contracts, catalog adapter, and fake-child boundary
 dotnet run --project tests/Doccer.TestRunner.Tests/Doccer.TestRunner.Tests.csproj
 ```
 
-The contract harness also exposes its 108 current top-level cases through a versioned catalog and
-supports exact single-case execution. The separate `Doccer.TestRunner` project now freezes its
-plan/run/artifact and one-line receipt contracts plus a controllable fake-child boundary, but does
-not execute or schedule those cases yet. Its execution contract is ordinary .NET process
-orchestration and does not depend on Nushell, PowerShell, or another command shell.
+The checked-in plan names the current 108-case `Doccer.Tests` catalog explicitly. The harness still
+supports its no-argument serial compatibility entry point and exact single-case execution. The
+separate `Doccer.TestRunner` builds and resolves each distinct executable harness project once,
+validates its bounded JSON catalog, and expands every case into an exact
+`dotnet exec ... run --case ...` work item. Parallel items enter a bounded rolling window; each
+exclusive item drains that window, runs alone, and blocks later admission until it completes. Valid
+harness result JSON is folded into ordered summary status and assertion counts, so clean passes do
+not retain redundant stdout logs. Cancellation accounts for active and queued cases, and the final
+console record remains one receipt pointing to repository-local evidence. After finalization, the
+runner keeps the newest 16 recognized completed runs while preserving active, partial, or
+unrecognized directories. The execution contract is ordinary .NET process orchestration and does
+not depend on Nushell, PowerShell, or another command shell.
 
 ---
 

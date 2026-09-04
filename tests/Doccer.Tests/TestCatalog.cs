@@ -11,11 +11,12 @@ internal static partial class Program
     private const int HarnessProtocolVersion = 1;
     private const string HarnessProtocol = "doccer-test-harness";
     private const string HarnessSuiteId = "doccer.contracts";
+    private const int MaximumReceiptLength = 768;
 
     private static readonly JsonSerializerOptions HarnessJsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = true,
+        WriteIndented = false,
     };
 
     private static readonly IReadOnlyList<HarnessCase> HarnessCases = CreateHarnessCases();
@@ -27,7 +28,12 @@ internal static partial class Program
     {
         if (args.Length == 0)
         {
-            return RunAllCases();
+            return RunAllCases(showDetails: false);
+        }
+
+        if (args.Length == 1 && StringComparer.Ordinal.Equals(args[0], "--details"))
+        {
+            return RunAllCases(showDetails: true);
         }
 
         return args[0] switch
@@ -39,23 +45,36 @@ internal static partial class Program
         };
     }
 
-    private static int RunAllCases()
+    private static int RunAllCases(bool showDetails)
     {
         _checks = 0;
+        HarnessCase? currentCase = null;
 
         try
         {
             foreach (var testCase in HarnessCases)
             {
+                currentCase = testCase;
                 testCase.Execute();
             }
 
-            Console.WriteLine($"doccer contract harness: {_checks} checks passed");
+            WriteReceipt(
+                $"doccer test receipt: status=passed suite={HarnessSuiteId} " +
+                $"cases={HarnessCases.Count} checks={_checks}");
             return 0;
         }
         catch (Exception exception)
         {
-            Console.Error.WriteLine(exception);
+            WriteReceipt(
+                $"doccer test receipt: status=failed suite={HarnessSuiteId} " +
+                $"case={currentCase?.Id ?? "unknown"} checks={_checks} " +
+                $"error={exception.GetType().Name}: {exception.Message}",
+                Console.Error);
+            if (showDetails)
+            {
+                Console.Error.WriteLine(exception);
+            }
+
             return 1;
         }
     }
@@ -112,6 +131,7 @@ internal static partial class Program
         string? caseId = null;
         var format = "text";
         var formatSpecified = false;
+        var showDetails = false;
 
         for (var index = 1; index < args.Length; index++)
         {
@@ -123,6 +143,9 @@ internal static partial class Program
                 case "--format" when index + 1 < args.Length && !formatSpecified:
                     format = args[++index];
                     formatSpecified = true;
+                    break;
+                case "--details" when !showDetails:
+                    showDetails = true;
                     break;
                 default:
                     return UsageError($"Unknown, duplicate, or incomplete argument '{args[index]}'.");
@@ -159,7 +182,11 @@ internal static partial class Program
         {
             stopwatch.Stop();
             WriteCaseResult(testCase, "failed", stopwatch.Elapsed, format, exception);
-            Console.Error.WriteLine(exception);
+            if (showDetails)
+            {
+                Console.Error.WriteLine(exception);
+            }
+
             return 1;
         }
     }
@@ -192,12 +219,17 @@ internal static partial class Program
 
         if (exception is null)
         {
-            Console.WriteLine($"doccer contract harness case: {testCase.Id}: {_checks} checks passed");
+            WriteReceipt(
+                $"doccer test receipt: status=passed suite={HarnessSuiteId} " +
+                $"case={testCase.Id} checks={_checks}");
         }
         else
         {
-            Console.Error.WriteLine(
-                $"doccer contract harness case: {testCase.Id}: failed after {_checks} checks");
+            WriteReceipt(
+                $"doccer test receipt: status=failed suite={HarnessSuiteId} " +
+                $"case={testCase.Id} checks={_checks} " +
+                $"error={exception.GetType().Name}: {exception.Message}",
+                Console.Error);
         }
     }
 
@@ -209,11 +241,13 @@ internal static partial class Program
 
             Usage:
               Doccer.Tests
+              Doccer.Tests --details
               Doccer.Tests list [--format text|json]
-              Doccer.Tests run --case <stable-id> [--format text|json]
+              Doccer.Tests run --case <stable-id> [--format text|json] [--details]
               Doccer.Tests --help
 
-            No arguments runs the complete catalog serially.
+            No arguments runs the complete catalog serially and emits one receipt.
+            --details additionally emits exception detail after a failure receipt.
             """);
         return 0;
     }
@@ -223,6 +257,18 @@ internal static partial class Program
         Console.Error.WriteLine(message);
         Console.Error.WriteLine("Run 'Doccer.Tests --help' for usage.");
         return 2;
+    }
+
+    private static void WriteReceipt(string value, System.IO.TextWriter? writer = null)
+    {
+        writer ??= Console.Out;
+        var singleLine = string.Join(' ', value.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+        if (singleLine.Length > MaximumReceiptLength)
+        {
+            singleLine = singleLine[..(MaximumReceiptLength - 3)] + "...";
+        }
+
+        writer.WriteLine(singleLine);
     }
 
     private static IReadOnlyList<HarnessCase> CreateHarnessCases()

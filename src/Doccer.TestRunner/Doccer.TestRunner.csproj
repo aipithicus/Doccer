@@ -6,6 +6,7 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Doccer.TestRunner.FakeChild" />
     <InternalsVisibleTo Include="Doccer.TestRunner.Tests" />
   </ItemGroup>
 </Project>

@@ -1,12 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <AssemblyName>Doccer.TestRunner.Tests</AssemblyName>
-    <RootNamespace>Doccer.TestRunner.Tests</RootNamespace>
+    <AssemblyName>Doccer.TestRunner.FakeChild</AssemblyName>
+    <RootNamespace>Doccer.TestRunner.FakeChild</RootNamespace>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Doccer.TestRunner.Tests" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Doccer.TestRunner\Doccer.TestRunner.csproj" />
-    <ProjectReference Include="..\Doccer.TestRunner.FakeChild\Doccer.TestRunner.FakeChild.csproj" />
   </ItemGroup>
 </Project>

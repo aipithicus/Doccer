@@ -4,6 +4,7 @@
     <Project Path="src/Doccer.TestRunner/Doccer.TestRunner.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Doccer.TestRunner.FakeChild/Doccer.TestRunner.FakeChild.csproj" />
     <Project Path="tests/Doccer.Tests/Doccer.Tests.csproj" />
     <Project Path="tests/Doccer.TestRunner.Tests/Doccer.TestRunner.Tests.csproj" />
   </Folder>

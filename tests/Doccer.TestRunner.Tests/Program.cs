@@ -1,28 +1,66 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Doccer.TestRunner.Tests;
 
-internal static class Program
+internal static partial class Program
 {
+    private const int MaximumReceiptLength = 768;
     private static int _checks;
 
-    public static int Main()
+    public static int Main(string[] args)
     {
+        var showDetails = args.Length == 1 && StringComparer.Ordinal.Equals(args[0], "--details");
+        if (args.Length != 0 && !showDetails)
+        {
+            Console.Error.WriteLine("Usage: Doccer.TestRunner.Tests [--details]");
+            return 2;
+        }
+
         try
         {
             EmptyInvocationShowsTheScaffoldBoundary();
             HelpIsAnAvailableCommand();
             VersionIsAnAvailableCommand();
             ExecutionCommandsFailLoudlyUntilImplemented();
-            Console.WriteLine($"doccer test runner scaffold: {_checks} checks passed");
+            PlanSchemaAndCommandExpansionAreDeterministic();
+            PlanValidationRejectsAmbiguityAndEscapes();
+            ArtifactLayoutIsContainedAndCollisionSafe();
+            ChildEnvironmentIsIsolatedAndReserved();
+            EventContractAndLifecycleTransitionsAreExact();
+            RunContractsAccountForEveryPlannedItem();
+            ResultStatusAndExitPrecedenceAreExact();
+            ReceiptAndDetailMaterializationAreBounded();
+            FakeChildIsControllableAndContainsArtifacts();
+            WriteReceipt($"doccer test receipt: status=passed suite=doccer.test-runner checks={_checks}");
             return 0;
         }
         catch (Exception exception)
         {
-            Console.Error.WriteLine(exception);
+            WriteReceipt(
+                $"doccer test receipt: status=failed suite=doccer.test-runner " +
+                $"checks={_checks} error={exception.GetType().Name}: {exception.Message}",
+                Console.Error);
+            if (showDetails)
+            {
+                Console.Error.WriteLine(exception);
+            }
+
             return 1;
         }
+    }
+
+    private static void WriteReceipt(string value, TextWriter? writer = null)
+    {
+        writer ??= Console.Out;
+        var singleLine = string.Join(' ', value.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+        if (singleLine.Length > MaximumReceiptLength)
+        {
+            singleLine = singleLine[..(MaximumReceiptLength - 3)] + "...";
+        }
+
+        writer.WriteLine(singleLine);
     }
 
     private static void EmptyInvocationShowsTheScaffoldBoundary()
@@ -33,7 +71,7 @@ internal static class Program
         var exitCode = global::Doccer.TestRunner.Program.Run(Array.Empty<string>(), stdout, stderr);
 
         Equal(0, exitCode, "empty invocation exit code");
-        Contains("Doccer.TestRunner scaffold", stdout.ToString(), "empty invocation help");
+        Contains("Doccer.TestRunner contract scaffold", stdout.ToString(), "empty invocation help");
         Equal(string.Empty, stderr.ToString(), "empty invocation stderr");
     }
 
@@ -70,7 +108,7 @@ internal static class Program
 
         Equal(2, exitCode, "unavailable command exit code");
         Equal(string.Empty, stdout.ToString(), "unavailable command stdout");
-        Contains("not available in the TestRunner scaffold", stderr.ToString(), "unavailable command error");
+        Contains("not available in the TestRunner contract scaffold", stderr.ToString(), "unavailable command error");
     }
 
     private static void Contains(string expected, string actual, string name)
@@ -89,6 +127,50 @@ internal static class Program
         if (!Equals(expected, actual))
         {
             throw new InvalidOperationException($"{name}: expected '{expected}', got '{actual}'.");
+        }
+    }
+
+    private static void True(bool condition, string name)
+    {
+        _checks++;
+        if (!condition)
+        {
+            throw new InvalidOperationException($"{name}: expected true.");
+        }
+    }
+
+    private static TException Throws<TException>(Action action, string name)
+        where TException : Exception
+    {
+        _checks++;
+        try
+        {
+            action();
+        }
+        catch (TException exception)
+        {
+            return exception;
+        }
+        catch (Exception exception)
+        {
+            throw new InvalidOperationException(
+                $"{name}: expected {typeof(TException).Name}, got {exception.GetType().Name}.",
+                exception);
+        }
+
+        throw new InvalidOperationException(
+            $"{name}: expected {typeof(TException).Name}, but no exception was thrown.");
+    }
+
+    private static void SequenceEqual<T>(
+        IReadOnlyList<T> expected,
+        IReadOnlyList<T> actual,
+        string name)
+    {
+        Equal(expected.Count, actual.Count, $"{name} count");
+        for (var index = 0; index < expected.Count; index++)
+        {
+            Equal(expected[index], actual[index], $"{name} item {index}");
         }
     }
 }

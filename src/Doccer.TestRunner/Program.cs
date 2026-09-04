@@ -30,8 +30,8 @@ internal static class Program
         }
 
         stderr.WriteLine(
-            $"Command '{args[0]}' is not available in the TestRunner scaffold. " +
-            "Catalog expansion and execution land in the next slice.");
+            $"Command '{args[0]}' is not available in the TestRunner contract scaffold. " +
+            "CLI plan loading, child execution, and scheduling have not landed yet.");
         stderr.WriteLine("Run 'Doccer.TestRunner --help' for the available surface.");
         return 2;
     }
@@ -40,14 +40,17 @@ internal static class Program
     {
         writer.WriteLine(
             """
-            Doccer.TestRunner scaffold
+            Doccer.TestRunner contract scaffold
 
             Usage:
               Doccer.TestRunner --help
               Doccer.TestRunner --version
 
-            The project and verification boundary are installed. Catalog expansion,
-            process scheduling, and run artifacts have not landed yet.
+            Versioned plan, run, event, result, compact artifact, bounded receipt, lifecycle,
+            and child-environment contracts are installed. A completed run will emit one JSON
+            receipt that points to its summary; captured child streams stay in selective case
+            details. CLI plan loading, child execution, scheduling, and run writing have not
+            landed yet.
             """);
     }
 }

@@ -36,14 +36,18 @@ Do not guess or assume architectural details—consult the relevant project sour
 
 ### Solution Layout
 - `src/Doccer/`: Domain-neutral engine library. Dependencies flow strictly downward across internal folders (`Core` → `Algebra`/`Vectors` → `Validation`/`Collector` → `Facts` → `Origins` → `Materialization`).
-- `src/Doccer.TestRunner/`: Repository-owned process-orchestration executable. The current scaffold
-  exposes help/version only; catalog expansion and scheduling remain the next slice.
+- `src/Doccer.TestRunner/`: Repository-owned process-orchestration executable. The current contract
+  scaffold exposes help/version and freezes plan, run, event, result, artifact, receipt, exit,
+  lifecycle, and child-environment semantics; CLI plan loading, process execution, harness
+  expansion, and scheduling remain ahead.
 - `tests/Doccer.Tests/`: Standalone, dependency-free contract harness and verification suite.
+- `tests/Doccer.TestRunner.FakeChild/`: Test-only controllable child-process fixture.
 - `tests/Doccer.TestRunner.Tests/`: Standalone verification for the TestRunner boundary.
 - `docs/`: Markdown documentation and specifications.
-- Additional SDK projects belong under `src/<Project>` with matching verification under
+- Additional production SDK projects belong under `src/<Project>` with matching verification under
   `tests/<Project>.Tests`; register both in `Doccer.slnx` rather than adding a parallel `projects/`
-  root.
+  root. Test-only executable fixtures stay under `tests/` with the owning project prefix and are
+  never packaged as production tools.
 - Each SDK project owns source beneath its project directory and uses default SDK compile inclusion
   unless an exceptional test asset is explicitly documented. Do not link ordinary source from a
   sibling tree or inject shared test source through ambient `Directory.Build.targets` rules.
@@ -54,6 +58,28 @@ Do not guess or assume architectural details—consult the relevant project sour
   tree. Do not use operating-system temp directories or user-profile paths for test artifacts.
   Checked-in fixtures are read-only inputs, not runtime workspaces. When the TestRunner launches a
   child, it must redirect `TMPDIR`, `TMP`, and `TEMP` to that case's repository-local work directory.
+- TestRunner run directories are direct children of `build/test-runs/` and use compact opaque
+  physical identities; display names belong in JSON evidence, not paths. Runner-managed paths are
+  capped at 220 characters. Child artifact paths are relative, have at most three components, cap
+  each component at 64 characters and the relative path at 120 characters, and use portable names.
+- Completed-run console output is one bounded JSON receipt on stdout. Child stdout and stderr are
+  captured and never relayed by default. The receipt points to the repository-relative
+  `summary.json`; inspect that summary before opening only the relevant case detail. Do not paste a
+  whole event stream, catalog, or collection of child logs into agent context.
+- Each child stream retains at most 256 KiB (64 KiB head and 192 KiB tail) while recording observed
+  and retained byte counts plus explicit truncation. Per case, child artifacts are capped at 8
+  files, 4 MiB per file, and 8 MiB total. Exceeding a budget is accounted evidence, never silent
+  truncation or omission.
+- Clean passing cases are represented in `summary.json` and do not get duplicate case directories.
+  A case detail directory is retained only for a nonpassing result, nonempty captured stream, or
+  child artifact. Per-case `tmp/` directories are execution workspaces and are removed at
+  finalization.
+- Keep at most 16 finalized run directories beneath `build/test-runs/`. Retention may consider only
+  direct children with a valid completed summary, must never prune an active or unrecognized
+  directory, and must report its prune count in the new run's receipt.
+- The runner is a direct .NET process/argument/environment contract. Nushell, PowerShell, Bash, and
+  other shells may invoke it, but shell syntax and shell-specific pipeline behavior are not part of
+  its plans, scheduling, evidence, or verification contracts.
 
 ### Code & Dependency Standards
 - **Zero External Dependencies**: `src/Doccer/Doccer.csproj` has zero runtime NuGet dependencies.
@@ -67,3 +93,7 @@ Before concluding any implementation task or refactor, you must run and pass the
 dotnet run --project tests/Doccer.Tests/Doccer.Tests.csproj
 dotnet run --project tests/Doccer.TestRunner.Tests/Doccer.TestRunner.Tests.csproj
 ```
+
+Report these bounded receipts. If `Doccer.Tests` names a failing case, rerun only that case with
+`--details`; use the TestRunner contract suite's own `--details` switch when needed. Do not paste
+unselected catalogs or complete log trees into context.

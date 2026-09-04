@@ -25,13 +25,16 @@ Doccer uses a dependency-free, high-assurance executable contract harness:
 # Execute the complete contract and law suite
 dotnet run --project tests/Doccer.Tests/Doccer.Tests.csproj
 
-# Verify the current TestRunner scaffold boundary
+# Verify the current TestRunner contracts and fake-child boundary
 dotnet run --project tests/Doccer.TestRunner.Tests/Doccer.TestRunner.Tests.csproj
 ```
 
 `Doccer.Tests` is an executable harness rather than a test-SDK project. `dotnet test` does not
 execute its checks. Until `Doccer.TestRunner` scheduling lands, run both executable verification
-projects above as the canonical repository gate.
+projects above as the canonical repository gate. Both emit a bounded one-line receipt by default;
+after a `Doccer.Tests` failure, rerun only the named case with `--details`. The TestRunner contract
+suite accepts `-- --details`. Use either detail surface only after its receipt rather than flooding
+the console with the whole suite's diagnostics.
 
 ### Build a Release Package
 ```powershell
@@ -52,28 +55,41 @@ Doccer/
 ├── src/
 │   ├── Doccer/                  # Core domain-neutral C# library (zero external dependencies)
 │   │   └── Doccer.csproj
-│   └── Doccer.TestRunner/       # Buildable process-orchestrator scaffold
+│   └── Doccer.TestRunner/       # Process-orchestrator contract scaffold
 │       └── Doccer.TestRunner.csproj
 ├── tests/
 │   ├── Doccer.Tests/            # Catalogued contract harness and verification suite
 │   │   └── Doccer.Tests.csproj
-│   └── Doccer.TestRunner.Tests/ # TestRunner scaffold verification
+│   ├── Doccer.TestRunner.FakeChild/ # Test-only controllable process fixture
+│   │   └── Doccer.TestRunner.FakeChild.csproj
+│   └── Doccer.TestRunner.Tests/ # TestRunner contract verification
 │       └── Doccer.TestRunner.Tests.csproj
 ├── build/                       # Centralized build outputs (bin/ and obj/) — gitignored
 └── release/                     # Packaged NuGet distributions — gitignored
 ```
 
-Additional production or executable SDK projects belong at `src/<Project>`, with matching
+Additional production or tool SDK projects belong at `src/<Project>`, with matching
 verification projects at `tests/<Project>.Tests`. Register both in `Doccer.slnx`; do not introduce
-a second `projects/` root. Keep a project's ordinary source beneath its own project directory and
-let the SDK include it by default; avoid cross-tree `Compile Include` globs and ambient build rules
-that silently inject shared test source.
+a second `projects/` root. Test-only executable fixtures stay below `tests/` with their owning
+project prefix and are not production packages. Keep a project's ordinary source beneath its own
+project directory and let the SDK include it by default; avoid cross-tree `Compile Include` globs
+and ambient build rules that silently inject shared test source.
 
-The scaffolded `Doccer.TestRunner` is a direct .NET executable rather than a PowerShell-wrapped
-workflow. It currently exposes only honest help/version behavior; catalog expansion, process
-scheduling, and run artifacts remain unimplemented. Test cases admitted to bounded parallel
-execution declare that posture explicitly; directory placement and naming organize ownership but
-do not imply concurrency safety.
+`Doccer.TestRunner` is a direct .NET executable rather than a PowerShell-wrapped workflow. Its
+current contract scaffold freezes strict versioned plan parsing, command expansion with explicit
+deferred harness-source residue, immutable run/event/result models, lifecycle and aggregate exit
+precedence, compact repository-contained artifact paths, bounded one-line receipts, selective case
+detail retention, bounded stream/artifact capture with explicit truncation residue, and child
+environment isolation. Finalized working evidence is capped at 16 run roots, with cleanup reported
+in the next receipt and active or unrecognized directories excluded from pruning. The test-only
+fake child can emit both streams, select an exit code, delay,
+spawn a descendant, resist console cancellation, and write only beneath an assigned artifact
+directory. CLI plan loading, the process executor, harness-catalog expansion, scheduling, and run
+evidence writing remain unimplemented. Test cases admitted to bounded parallel execution declare
+that posture explicitly; directory placement and naming organize ownership but do not imply
+concurrency safety. The runner starts executables with explicit argument lists and environment
+entries through .NET APIs; invoking the runner from Nu, PowerShell, Bash, an IDE, or an agent does
+not change its contract.
 
 ---
 

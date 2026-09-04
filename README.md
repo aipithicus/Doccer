@@ -61,13 +61,15 @@ Doccer uses a standalone, dependency-free verification harness with bounded law 
 # Run the complete contract harness and law checks
 dotnet run --project tests/Doccer.Tests/Doccer.Tests.csproj
 
-# Verify the current TestRunner scaffold boundary
+# Verify the current TestRunner contracts and fake-child boundary
 dotnet run --project tests/Doccer.TestRunner.Tests/Doccer.TestRunner.Tests.csproj
 ```
 
 The contract harness also exposes its 108 current top-level cases through a versioned catalog and
-supports exact single-case execution. The separate `Doccer.TestRunner` project is scaffolded but
-does not schedule those cases yet.
+supports exact single-case execution. The separate `Doccer.TestRunner` project now freezes its
+plan/run/artifact and one-line receipt contracts plus a controllable fake-child boundary, but does
+not execute or schedule those cases yet. Its execution contract is ordinary .NET process
+orchestration and does not depend on Nushell, PowerShell, or another command shell.
 
 ---
 

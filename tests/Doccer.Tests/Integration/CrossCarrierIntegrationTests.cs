@@ -7,9 +7,9 @@ namespace Doccer.Tests;
 
 internal static partial class Program
 {
-    private static void K8MultiFamilyPairingRetainsResidueAndReportsSeam()
+    private static void CrossCarrierMultiFamilyPairingRetainsResidueAndReportsSeam()
     {
-        var master = new TextMaster("k8-pairing", 0, ")([])(");
+        var master = new TextMaster("cross-carrier-pairing", 0, ")([])(");
         var batch = PairingBatch(
             master,
             (new TextSpan(0, 1), "close", "round"),
@@ -21,7 +21,7 @@ internal static partial class Program
         var opens = ClaimSelection.FromPredicate(batch, static record => record.Kind == "open");
         var closes = ClaimSelection.FromPredicate(batch, static record => record.Kind == "close");
         var policy = PairingPolicy.ByKey<string?>(
-            "k8-delimiter-family",
+            "cross-carrier-delimiter-family",
             static record => record.RuleId,
             StringComparer.Ordinal);
 
@@ -32,32 +32,32 @@ internal static partial class Program
             ReferenceEquals(result.CloseInput, closes) &&
             ReferenceEquals(result.MatchEdges.LeftBasis, batch) &&
             ReferenceEquals(result.MatchEdges.RightBasis, batch),
-            "K8 pairing retains exact role selections and occurrence bases");
+            "cross-carrier pairing retains exact role selections and occurrence bases");
         True(
             result.MatchEdges.Any(edge => edge.LeftOrdinal == 2 && edge.RightOrdinal == 3) &&
             result.MatchEdges.Any(edge => edge.LeftOrdinal == 1 && edge.RightOrdinal == 4),
-            "K8 pairing accepts nested square and round families");
+            "cross-carrier pairing accepts nested square and round families");
         True(
             result.Faults.DanglingCloses.SequenceEqual(new[] { 0 }) &&
             result.Faults.UnclosedOpens.SequenceEqual(new[] { 5 }) &&
             result.Faults.MismatchedPairs.IsEmpty,
-            "K8 pairing retains exact dangling and unclosed residue");
+            "cross-carrier pairing retains exact dangling and unclosed residue");
         True(
             result.MatchEdges.ProjectLeft().Union(result.Faults.OpenResidue).Equals(opens) &&
             result.MatchEdges.ProjectRight().Union(result.Faults.CloseResidue).Equals(closes),
-            "K8 pairing match and residue populations cover both inputs");
+            "cross-carrier pairing match and residue populations cover both inputs");
 
         var pairedRegions = result.PairedRegions();
         True(
             pairedRegions.Count == 1 && pairedRegions[0] == new TextSpan(1, 5) &&
             ReferenceEquals(pairedRegions.Master, master),
-            "K8 paired-region projection deliberately forgets the nested occurrence identities");
+            "cross-carrier paired-region projection deliberately forgets the nested occurrence identities");
         True(
             !typeof(CandidateRegionGraph).GetMethods()
                 .Any(method => method.Name == nameof(CandidateRegionGraph.Create) &&
                     method.GetParameters().Length > 0 &&
                     method.GetParameters()[0].ParameterType == typeof(SpanSet)),
-            "K8 pairing geometry has no identity-preserving direct graph composition");
+            "cross-carrier pairing geometry has no identity-preserving direct graph composition");
         var compatibleMaster = new TextMaster(master.DocumentId, master.Revision, master.Text);
         var compatibleBatch = PairingBatch(
             compatibleMaster,
@@ -67,13 +67,13 @@ internal static partial class Program
             (new TextSpan(3, 4), "close", "square"),
             (new TextSpan(4, 5), "close", "round"),
             (new TextSpan(5, 6), "open", "round"));
-        True(master.IsCompatibleWith(compatibleMaster), "K8 pairing replay adversary is text-compatible");
+        True(master.IsCompatibleWith(compatibleMaster), "cross-carrier pairing replay adversary is text-compatible");
         Throws<InvalidOperationException>(
             () => result.MatchEdges.ComposePairs(ClaimPairView.Identity(compatibleBatch)),
-            "K8 pairing relation refuses a compatible recollected middle occurrence basis");
+            "cross-carrier pairing relation refuses a compatible recollected middle occurrence basis");
 
-        K8AssertSeamPacket(new K8SeamPacket(
-            "K8-W1-multi-family-pairing",
+        CrossCarrierAssertSeamPacket(new CrossCarrierSeamPacket(
+            "multi-family-pairing",
             "TextMaster; SpanBatch; ClaimSelection(open); ClaimSelection(close); PairingPolicy",
             "PairingResult; ClaimPairView; PairingFaults; SpanSet",
             "one exact TextMaster and one exact SpanBatch shared by both role selections and pair-view endpoints",
@@ -86,9 +86,9 @@ internal static partial class Program
             "paired-region projection cannot preserve endpoints; compatible recollected middle basis is refused by ComposePairs"));
     }
 
-    private static void K8AmbiguousTwoPathGraphRetainsPoliciesAndReportsSeam()
+    private static void CrossCarrierAmbiguousTwoPathGraphRetainsPoliciesAndReportsSeam()
     {
-        var master = new TextMaster("k8-ambiguous-path", 0, "abc");
+        var master = new TextMaster("cross-carrier-ambiguous-path", 0, "abc");
         var batch = PairBatch(
             master,
             new TextSpan(0, 1),
@@ -99,7 +99,7 @@ internal static partial class Program
         var costs = new long[] { 4, 1, 4, 1 };
         var policy = AdditivePathPolicy.Create(
             graph,
-            "k8-two-path-minimum-penalty",
+            "cross-carrier-two-path-minimum-penalty",
             "penalty-points",
             record => costs[record.Ordinal]);
         var problem = PathSelectionProblem.Create(graph, graph.Candidates, policy);
@@ -111,25 +111,25 @@ internal static partial class Program
             firstOrdinal.Partition.SequenceEqual(new[] { 0, 2 }) &&
             selected.Partition is not null &&
             selected.Partition.SequenceEqual(new[] { 1, 3 }),
-            "K8 ambiguous graph retains two complete paths distinguished by explicit policy");
+            "cross-carrier ambiguous graph retains two complete paths distinguished by explicit policy");
         True(
             ReferenceEquals(selected.Graph, graph) &&
             ReferenceEquals(selected.Partition!.Graph, graph) &&
             ReferenceEquals(selected.Policy, policy) &&
             ReferenceEquals(graph.Source, batch),
-            "K8 ambiguous result retains exact graph, batch, partition, and policy stamps");
+            "cross-carrier ambiguous result retains exact graph, batch, partition, and policy stamps");
         True(
             selected.Score == 2 && selected.ScoreUnit == "penalty-points" &&
             selected.SelectedCandidates.SequenceEqual(new[] { 1, 3 }) &&
             selected.RejectedCandidates.SequenceEqual(new[] { 0, 2 }) &&
             selected.ExcludedCandidates.IsEmpty,
-            "K8 ambiguous result exposes score and alternative-path residue");
+            "cross-carrier ambiguous result exposes score and alternative-path residue");
 
         var geometry = graph.ToLocatedRelation();
         True(
             geometry.Count == 4 && ReferenceEquals(geometry.Master, master) &&
             geometry.Window == master.Extent,
-            "K8 graph projection retains geometry and window while forgetting candidate ordinals");
+            "cross-carrier graph projection retains geometry and window while forgetting candidate ordinals");
 
         var compatibleMaster = new TextMaster(master.DocumentId, master.Revision, master.Text);
         var compatibleBatch = PairBatch(
@@ -138,13 +138,13 @@ internal static partial class Program
             new TextSpan(0, 2),
             new TextSpan(1, 3),
             new TextSpan(2, 3));
-        True(master.IsCompatibleWith(compatibleMaster), "K8 ambiguous replay adversary is text-compatible");
+        True(master.IsCompatibleWith(compatibleMaster), "cross-carrier ambiguous replay adversary is text-compatible");
         Throws<InvalidOperationException>(
             () => PathSelectionProblem.Create(graph, ClaimSelection.All(compatibleBatch), policy),
-            "K8 ambiguous path refuses a compatible recollected occurrence basis");
+            "cross-carrier ambiguous path refuses a compatible recollected occurrence basis");
 
-        K8AssertSeamPacket(new K8SeamPacket(
-            "K8-W2-ambiguous-two-path-graph",
+        CrossCarrierAssertSeamPacket(new CrossCarrierSeamPacket(
+            "ambiguous-two-path-graph",
             "TextMaster; SpanBatch; ClaimSelection; CandidateRegionGraph; AdditivePathPolicy; PathSelectionProblem",
             "PathSelectionResult; PartitionView; ClaimSelection residues; LocatedRelation projection",
             "exact four-row SpanBatch, exact CandidateRegionGraph value over [0,3), and exact policy graph stamp",
@@ -157,10 +157,10 @@ internal static partial class Program
             "compatible-recollected-batch: exact ClaimSelection basis mismatch is refused"));
     }
 
-    private static void K8BudgetedChunksRetainAdapterMeasureCostAndReportsSeam()
+    private static void CrossCarrierBudgetedChunksRetainAdapterMeasureCostAndReportsSeam()
     {
         const int maximumMeasure = 3;
-        var master = new TextMaster("k8-budgeted-chunks", 0, "abcdef");
+        var master = new TextMaster("cross-carrier-budgeted-chunks", 0, "abcdef");
         var builder = new SpanBatchBuilder(master);
         builder.Add(new SpanClaim(new TextSpan(0, 2), "chunk", SpanLevel.Character, "adapter", 4, "two"));
         builder.Add(new SpanClaim(new TextSpan(0, 3), "chunk", SpanLevel.Character, "adapter", 1, "three"));
@@ -173,10 +173,10 @@ internal static partial class Program
         var graph = CandidateRegionGraph.Create(ClaimSelection.All(batch), master.Extent);
         var admitted = ClaimSelection.FromPredicate(
             batch,
-            record => K8ChunkMeasure(record) <= maximumMeasure);
+            record => CrossCarrierChunkMeasure(record) <= maximumMeasure);
         var policy = AdditivePathPolicy.Create(
             graph,
-            "k8-adapter-chunk-cost",
+            "cross-carrier-adapter-chunk-cost",
             "penalty-points",
             static record => record.Priority);
         var problem = PathSelectionProblem.Create(graph, admitted, policy);
@@ -185,28 +185,28 @@ internal static partial class Program
         True(
             admitted.SequenceEqual(new[] { 0, 1, 3, 4, 5 }) &&
             problem.ExcludedCandidates.SequenceEqual(new[] { 2, 6 }),
-            "K8 adapter measure separates admitted chunks from explicit resource residue");
+            "cross-carrier adapter measure separates admitted chunks from explicit resource residue");
         True(
             result.Partition is not null && result.Partition.SequenceEqual(new[] { 1, 4 }) &&
             result.Score == 2 && result.ScoreUnit == "penalty-points",
-            "K8 adapter cost selects the minimum-cost complete chunk path");
+            "cross-carrier adapter cost selects the minimum-cost complete chunk path");
         True(
             result.SelectedCandidates.SequenceEqual(new[] { 1, 4 }) &&
             result.RejectedCandidates.SequenceEqual(new[] { 0, 3, 5 }) &&
             result.ExcludedCandidates.SequenceEqual(new[] { 2, 6 }),
-            "K8 chunk result separates selected, rejected-admissible, and over-budget populations");
+            "cross-carrier chunk result separates selected, rejected-admissible, and over-budget populations");
         True(
             ReferenceEquals(problem.Graph, graph) && ReferenceEquals(problem.Source, batch) &&
             ReferenceEquals(problem.Policy, policy) && ReferenceEquals(result.Problem, problem),
-            "K8 chunk problem retains exact graph, batch, adapter-cost, and result stamps");
+            "cross-carrier chunk problem retains exact graph, batch, adapter-cost, and result stamps");
 
-        var tooSmall = ClaimSelection.FromPredicate(batch, record => K8ChunkMeasure(record) <= 1);
+        var tooSmall = ClaimSelection.FromPredicate(batch, record => CrossCarrierChunkMeasure(record) <= 1);
         var failed = PathSelection.Select(PathSelectionProblem.Create(graph, tooSmall, policy));
         True(
             !failed.IsComplete && failed.Residual is not null &&
             ReferenceEquals(failed.Residual.Policy, policy) &&
             failed.Residual.CoverageGaps.Count > 0,
-            "K8 too-small resource admission returns stamped failed-path evidence");
+            "cross-carrier too-small resource admission returns stamped failed-path evidence");
         var compatibleMaster = new TextMaster(master.DocumentId, master.Revision, master.Text);
         var compatibleBuilder = new SpanBatchBuilder(compatibleMaster);
         foreach (var record in batch)
@@ -223,35 +223,35 @@ internal static partial class Program
             policy.Name,
             policy.Unit,
             static record => record.Priority);
-        True(master.IsCompatibleWith(compatibleMaster), "K8 chunk replay adversary is text-compatible");
+        True(master.IsCompatibleWith(compatibleMaster), "cross-carrier chunk replay adversary is text-compatible");
         Throws<InvalidOperationException>(
             () => PathSelectionProblem.Create(graph, admitted, compatiblePolicy),
-            "K8 chunk problem refuses a policy stamped by a compatible recollected graph");
+            "cross-carrier chunk problem refuses a policy stamped by a compatible recollected graph");
 
-        K8AssertSeamPacket(new K8SeamPacket(
-            "K8-W3-budgeted-flat-chunks",
+        CrossCarrierAssertSeamPacket(new CrossCarrierSeamPacket(
+            "budgeted-flat-chunks",
             "TextMaster; SpanBatch; CandidateRegionGraph; adapter-measured ClaimSelection; AdditivePathPolicy; PathSelectionProblem",
             "PathSelectionResult; PartitionView; selected/rejected/excluded ClaimSelections; PathSelectionResidual",
             "exact seven-row SpanBatch and all-candidate graph over [0,6); every subset remains on that exact batch",
             "CandidateRegionGraph.ToLocatedRelation is available but loses candidate identity; selection partitions retain ordinals",
             "RejectedCandidates={0,3,5}; ExcludedCandidates={2,6}; max-measure=1 produces explicit coverage residual",
-            $"measure=k8-utf16-span-length; objective={policy.Name}; unit={policy.Unit}",
+            $"measure=cross-carrier-utf16-span-length; objective={policy.Name}; unit={policy.Unit}",
             $"maximumMeasure={maximumMeasure}; seven candidates; additive score bound={batch.Sum(record => record.Priority)}",
             "bounded exact reference selection; adapter measure/cost meanings are not kernel semantics",
             "portable replay needs source/batch identity, measure algorithm/version, threshold, retained cost table, graph window, and tie policy; F2 is not supplied",
             "maximumMeasure=1 returns PathSelectionResidual; compatible recollected graph policy is refused"));
     }
 
-    private static void K8FixedMacroSubstitutionComposesOriginsAndReportsSeam()
+    private static void CrossCarrierFixedMacroSubstitutionComposesOriginsAndReportsSeam()
     {
-        var root = new TextMaster("k8-fixed-macro-root", 3, "say: @!");
+        var root = new TextMaster("cross-carrier-fixed-macro-root", 3, "say: @!");
         var slice = TextSlice.Create(root, new TextSpan(5, 7));
-        var rootBasis = K8SingletonBasis("root", root);
-        var sliceBasis = K8SingletonBasis("macro-body", slice.Child);
+        var rootBasis = CrossCarrierSingletonBasis("root", root);
+        var sliceBasis = CrossCarrierSingletonBasis("macro-body", slice.Child);
         var sliceOrigins = OriginRelation.FromTextSlice(slice, sliceBasis, rootBasis);
         var macroPlan = RewritePlan.Create(
             sliceBasis,
-            new MaterializationTarget("k8-fixed-macro-output", 4, "expanded"),
+            new MaterializationTarget("cross-carrier-fixed-macro-output", 4, "expanded"),
             new[]
             {
                 OutputPiece.OriginMapped(
@@ -266,40 +266,40 @@ internal static partial class Program
         var materialized = RewriteMaterialization.Materialize(macroPlan);
         var composed = materialized.Origins.ComposeOrigins(sliceOrigins);
 
-        Equal("hi!", materialized.OutputMaster.Text, "K8 fixed macro substitution produces a new master");
+        Equal("hi!", materialized.OutputMaster.Text, "cross-carrier fixed macro substitution produces a new master");
         True(
             ReferenceEquals(materialized.Plan, macroPlan) &&
             ReferenceEquals(materialized.Origins.SourceBasis, sliceBasis) &&
             ReferenceEquals(composed.OutputBasis, materialized.OutputBasis) &&
             ReferenceEquals(composed.SourceBasis, rootBasis),
-            "K8 fixed macro substitution retains every exact plan and origin basis stamp");
+            "cross-carrier fixed macro substitution retains every exact plan and origin basis stamp");
         True(
-            K8HasOrigin(composed, 0, 0, 0, 5) &&
-            K8HasOrigin(composed, 0, 1, 0, 5) &&
-            K8HasOrigin(composed, 0, 2, 0, 6) &&
+            CrossCarrierHasOrigin(composed, 0, 0, 0, 5) &&
+            CrossCarrierHasOrigin(composed, 0, 1, 0, 5) &&
+            CrossCarrierHasOrigin(composed, 0, 2, 0, 6) &&
             composed.Count == 3,
-            "K8 composed origins trace expanded and copied atoms to the root document");
+            "cross-carrier composed origins trace expanded and copied atoms to the root document");
         True(
             materialized.UnusedSources.Count == 1 && materialized.UnusedSources[0].Count == 0,
-            "K8 macro materialization accounts for all slice-source material");
+            "cross-carrier macro materialization accounts for all slice-source material");
 
         var scopeResidue = SpanSet.Whole(root).Subtract(
             SpanSet.Create(root, new[] { slice.Window }));
         True(
             scopeResidue.SequenceEqual(new[] { new TextSpan(0, 5) }),
-            "K8 macro recipe names root material outside the selected slice as scope residue");
+            "cross-carrier macro recipe names root material outside the selected slice as scope residue");
         var projection = composed.ProjectSources(0, materialized.OutputMaster.Extent);
         True(
             projection.Count == 1 && projection[0].SequenceEqual(new[] { new TextSpan(5, 7) }),
-            "K8 origin projection recovers the used root region while forgetting atom-edge multiplicity");
+            "cross-carrier origin projection recovers the used root region while forgetting atom-edge multiplicity");
 
         var valueIdenticalSliceBasis = OriginBasis.Create(sliceBasis.Slots);
         Throws<InvalidOperationException>(
             () => OriginRelation.Identity(valueIdenticalSliceBasis).ComposeOrigins(sliceOrigins),
-            "K8 fixed macro composition refuses a value-identical middle-basis clone");
+            "cross-carrier fixed macro composition refuses a value-identical middle-basis clone");
 
-        K8AssertSeamPacket(new K8SeamPacket(
-            "K8-W4-fixed-macro-substitution",
+        CrossCarrierAssertSeamPacket(new CrossCarrierSeamPacket(
+            "fixed-macro-substitution",
             "root TextMaster; TextSlice; slice/root OriginBasis values; RewritePlan with OriginMapped and Copy pieces",
             "MaterializationResult; new output TextMaster; stage OriginRelation; composed root OriginRelation; SpanSet projection",
             "exact slice child basis is both plan source and slice-origin output; materialization output basis becomes composed output",
@@ -312,7 +312,7 @@ internal static partial class Program
             "value-identical-slice-basis-clone: OriginRelation.ComposeOrigins requires the exact shared object"));
     }
 
-    private static void K8RecursiveExpansionStopsAtResourceBoundaryAndReportsSeam()
+    private static void CrossCarrierRecursiveExpansionStopsAtResourceBoundaryAndReportsSeam()
     {
         var definitions = new Dictionary<string, string>(StringComparer.Ordinal)
         {
@@ -320,62 +320,62 @@ internal static partial class Program
             ["B"] = "y${C}",
             ["C"] = "z",
         };
-        var root = new TextMaster("k8-recursive-root", 0, "${A}");
-        var rootBasis = K8SingletonBasis("root", root);
-        var depthPolicy = new K8ExpansionPolicy(
-            "k8-leftmost-document-macro",
+        var root = new TextMaster("cross-carrier-recursive-root", 0, "${A}");
+        var rootBasis = CrossCarrierSingletonBasis("root", root);
+        var depthPolicy = new CrossCarrierExpansionPolicy(
+            "cross-carrier-leftmost-document-macro",
             MaxDepth: 2,
             MaxOutputUtf16Units: 32);
-        var bounded = K8ExpandDocument(root, rootBasis, definitions, depthPolicy);
+        var bounded = CrossCarrierExpandDocument(root, rootBasis, definitions, depthPolicy);
 
         True(
-            bounded.Stop == K8ExpansionStop.DepthLimit &&
+            bounded.Stop == CrossCarrierExpansionStop.DepthLimit &&
             bounded.DepthUsed == 2 && bounded.Materializations.Count == 2 &&
             bounded.OutputMaster.Text == "xy${C}",
-            "K8 recursive adapter stops before a third expansion at its exact depth limit");
+            "cross-carrier recursive adapter stops before a third expansion at its exact depth limit");
         True(
             ReferenceEquals(bounded.OutputBasis, bounded.ComposedOrigins.OutputBasis) &&
             ReferenceEquals(rootBasis, bounded.ComposedOrigins.SourceBasis) &&
             bounded.ComposedOrigins.IsTotal,
-            "K8 recursive adapter reuses exact stage bases for total root-origin composition");
+            "cross-carrier recursive adapter reuses exact stage bases for total root-origin composition");
         True(
             ReferenceEquals(bounded.UnexpandedMacros.Basis.Master, bounded.OutputMaster) &&
             bounded.UnexpandedMacros.Count == 1 &&
             bounded.UnexpandedMacros.Single() == 0 &&
             bounded.UnexpandedMacros.Basis[0].Span == new TextSpan(2, 6) &&
             bounded.UnexpandedMacros.Basis[0].RuleId == "C",
-            "K8 depth residue retains the exact output occurrence basis and unresolved macro name");
+            "cross-carrier depth residue retains the exact output occurrence basis and unresolved macro name");
 
-        var complete = K8ExpandDocument(
+        var complete = CrossCarrierExpandDocument(
             root,
             rootBasis,
             definitions,
             depthPolicy with { MaxDepth = 3 });
         True(
-            complete.Stop == K8ExpansionStop.Completed && complete.DepthUsed == 3 &&
+            complete.Stop == CrossCarrierExpansionStop.Completed && complete.DepthUsed == 3 &&
             complete.OutputMaster.Text == "xyz" && complete.UnexpandedMacros.IsEmpty,
-            "K8 recursion completes only when the external policy grants the third step");
+            "cross-carrier recursion completes only when the external policy grants the third step");
 
-        var outputBounded = K8ExpandDocument(
+        var outputBounded = CrossCarrierExpandDocument(
             root,
             rootBasis,
             definitions,
             depthPolicy with { MaxDepth = 8, MaxOutputUtf16Units = 4 });
         True(
-            outputBounded.Stop == K8ExpansionStop.OutputUnitLimit &&
+            outputBounded.Stop == CrossCarrierExpansionStop.OutputUnitLimit &&
             outputBounded.DepthUsed == 0 && outputBounded.OutputMaster.Text == "${A}" &&
             outputBounded.UnexpandedMacros.Count == 1,
-            "K8 recursive adapter returns unresolved residue before exceeding its output resource");
+            "cross-carrier recursive adapter returns unresolved residue before exceeding its output resource");
 
         var firstStage = bounded.Materializations[0];
         var clonedFirstStageBasis = OriginBasis.Create(firstStage.OutputBasis.Slots);
         Throws<InvalidOperationException>(
             () => OriginRelation.Identity(clonedFirstStageBasis).ComposeOrigins(firstStage.Origins),
-            "K8 recursive stage composition refuses a value-identical middle-basis clone");
+            "cross-carrier recursive stage composition refuses a value-identical middle-basis clone");
 
-        K8AssertSeamPacket(new K8SeamPacket(
-            "K8-W5-resource-bounded-recursive-expansion",
-            "TextMaster; document-supplied definition table; test-local K8ExpansionPolicy; per-stage RewritePlan and OriginBasis",
+        CrossCarrierAssertSeamPacket(new CrossCarrierSeamPacket(
+            "resource-bounded-recursive-expansion",
+            "TextMaster; document-supplied definition table; test-local cross-carrier expansion policy; per-stage RewritePlan and OriginBasis",
             "ordered MaterializationResult stages; final TextMaster; composed root OriginRelation; unresolved-macro ClaimSelection",
             "each stage reuses the preceding MaterializationResult.OutputBasis exactly; residue uses an exact final-output SpanBatch",
             "composed OriginRelation.ProjectSources may forget atom-edge multiplicity; no stage or unresolved occurrence is projected away internally",
@@ -387,12 +387,12 @@ internal static partial class Program
             "depth/output exhaustion returns typed test-recipe residue; cloned stage bases are refused by exact origin composition"));
     }
 
-    private static int K8ChunkMeasure(SpanRecord record) => record.Span.Length;
+    private static int CrossCarrierChunkMeasure(SpanRecord record) => record.Span.Length;
 
-    private static OriginBasis K8SingletonBasis(string tag, TextMaster master) =>
+    private static OriginBasis CrossCarrierSingletonBasis(string tag, TextMaster master) =>
         OriginBasis.Create(new[] { new OriginSlot(tag, master) });
 
-    private static bool K8HasOrigin(
+    private static bool CrossCarrierHasOrigin(
         OriginRelation relation,
         int outputSlot,
         int outputAtom,
@@ -402,7 +402,7 @@ internal static partial class Program
             edge.Output == new OriginAtom(outputSlot, outputAtom) &&
             edge.Source == new OriginAtom(sourceSlot, sourceAtom));
 
-    private static void K8AssertSeamPacket(K8SeamPacket packet)
+    private static void CrossCarrierAssertSeamPacket(CrossCarrierSeamPacket packet)
     {
         var fields = new[]
         {
@@ -419,18 +419,18 @@ internal static partial class Program
             packet.FailedComposition,
         };
         True(fields.All(static field => !string.IsNullOrWhiteSpace(field)),
-            $"{packet.WitnessId} seam packet fills every K8 closure field");
+            $"{packet.WitnessId} seam packet fills every cross-carrier closure field");
         True(packet.ScalePosture.Contains("bounded", StringComparison.OrdinalIgnoreCase),
             $"{packet.WitnessId} declares bounded scale posture");
         True(packet.PortabilityRequirements.Contains("F2", StringComparison.Ordinal),
             $"{packet.WitnessId} distinguishes portability requirements from current replay");
     }
 
-    private static K8RecursiveExpansionOutcome K8ExpandDocument(
+    private static CrossCarrierRecursiveExpansionOutcome CrossCarrierExpandDocument(
         TextMaster root,
         OriginBasis rootBasis,
         IReadOnlyDictionary<string, string> definitions,
-        K8ExpansionPolicy policy)
+        CrossCarrierExpansionPolicy policy)
     {
         ArgumentNullException.ThrowIfNull(root);
         ArgumentNullException.ThrowIfNull(rootBasis);
@@ -444,7 +444,7 @@ internal static partial class Program
         if (rootBasis.Count != 1 || !ReferenceEquals(rootBasis[0].Master, root))
         {
             throw new InvalidOperationException(
-                "K8 recursive expansion requires one exact root basis slot.");
+                "cross-carrier recursive expansion requires one exact root basis slot.");
         }
 
         var currentMaster = root;
@@ -452,34 +452,34 @@ internal static partial class Program
         var currentToRoot = OriginRelation.Identity(rootBasis);
         var materializations = new List<MaterializationResult>();
         var depth = 0;
-        var stop = K8ExpansionStop.Completed;
+        var stop = CrossCarrierExpansionStop.Completed;
 
         while (true)
         {
-            var macros = K8FindMacroOccurrences(currentMaster.Text);
+            var macros = CrossCarrierFindMacroOccurrences(currentMaster.Text);
             if (macros.Count == 0)
             {
-                stop = K8ExpansionStop.Completed;
+                stop = CrossCarrierExpansionStop.Completed;
                 break;
             }
 
             var next = macros[0];
             if (!definitions.TryGetValue(next.Name, out var replacement))
             {
-                stop = K8ExpansionStop.UnknownMacro;
+                stop = CrossCarrierExpansionStop.UnknownMacro;
                 break;
             }
 
             if (depth >= policy.MaxDepth)
             {
-                stop = K8ExpansionStop.DepthLimit;
+                stop = CrossCarrierExpansionStop.DepthLimit;
                 break;
             }
 
             var projectedLength = checked(currentMaster.Length - next.Span.Length + replacement.Length);
             if (projectedLength > policy.MaxOutputUtf16Units)
             {
-                stop = K8ExpansionStop.OutputUnitLimit;
+                stop = CrossCarrierExpansionStop.OutputUnitLimit;
                 break;
             }
 
@@ -489,7 +489,7 @@ internal static partial class Program
                 pieces.Add(OutputPiece.Copy(0, new TextSpan(0, next.Span.Start)));
             }
 
-            pieces.Add(K8MappedReplacement(currentMaster, next.Span, replacement));
+            pieces.Add(CrossCarrierMappedReplacement(currentMaster, next.Span, replacement));
             if (next.Span.End < currentMaster.Length)
             {
                 pieces.Add(OutputPiece.Copy(0, new TextSpan(next.Span.End, currentMaster.Length)));
@@ -511,7 +511,7 @@ internal static partial class Program
         }
 
         var residueBuilder = new SpanBatchBuilder(currentMaster);
-        foreach (var macro in K8FindMacroOccurrences(currentMaster.Text))
+        foreach (var macro in CrossCarrierFindMacroOccurrences(currentMaster.Text))
         {
             residueBuilder.Add(new SpanClaim(
                 macro.Span,
@@ -522,7 +522,7 @@ internal static partial class Program
         }
 
         var residueBasis = residueBuilder.Freeze();
-        return new K8RecursiveExpansionOutcome(
+        return new CrossCarrierRecursiveExpansionOutcome(
             policy,
             stop,
             depth,
@@ -533,7 +533,7 @@ internal static partial class Program
             ClaimSelection.All(residueBasis));
     }
 
-    private static OutputPiece K8MappedReplacement(
+    private static OutputPiece CrossCarrierMappedReplacement(
         TextMaster source,
         TextSpan macroSpan,
         string replacement)
@@ -547,7 +547,7 @@ internal static partial class Program
             }
         }
 
-        var replacementMaster = new TextMaster("k8-replacement", 0, replacement);
+        var replacementMaster = new TextMaster("cross-carrier-replacement", 0, replacement);
         var origins = new List<PieceOrigin>();
         for (var outputAtom = 0; outputAtom < replacementMaster.Topology.AtomCount; outputAtom++)
         {
@@ -560,9 +560,9 @@ internal static partial class Program
         return OutputPiece.OriginMapped(replacement, origins);
     }
 
-    private static IReadOnlyList<K8MacroOccurrence> K8FindMacroOccurrences(string text)
+    private static IReadOnlyList<CrossCarrierMacroOccurrence> CrossCarrierFindMacroOccurrences(string text)
     {
-        var occurrences = new List<K8MacroOccurrence>();
+        var occurrences = new List<CrossCarrierMacroOccurrence>();
         var cursor = 0;
         while (cursor < text.Length)
         {
@@ -581,7 +581,7 @@ internal static partial class Program
             var name = text.Substring(start + 2, end - start - 2);
             if (name.Length > 0)
             {
-                occurrences.Add(new K8MacroOccurrence(name, new TextSpan(start, end + 1)));
+                occurrences.Add(new CrossCarrierMacroOccurrence(name, new TextSpan(start, end + 1)));
             }
 
             cursor = end + 1;
@@ -590,7 +590,7 @@ internal static partial class Program
         return occurrences.AsReadOnly();
     }
 
-    private sealed record K8SeamPacket(
+    private sealed record CrossCarrierSeamPacket(
         string WitnessId,
         string InputSorts,
         string ResultSorts,
@@ -603,12 +603,12 @@ internal static partial class Program
         string PortabilityRequirements,
         string FailedComposition);
 
-    private sealed record K8ExpansionPolicy(
+    private sealed record CrossCarrierExpansionPolicy(
         string Name,
         int MaxDepth,
         int MaxOutputUtf16Units);
 
-    private enum K8ExpansionStop
+    private enum CrossCarrierExpansionStop
     {
         Completed,
         DepthLimit,
@@ -616,11 +616,11 @@ internal static partial class Program
         UnknownMacro,
     }
 
-    private readonly record struct K8MacroOccurrence(string Name, TextSpan Span);
+    private readonly record struct CrossCarrierMacroOccurrence(string Name, TextSpan Span);
 
-    private sealed record K8RecursiveExpansionOutcome(
-        K8ExpansionPolicy Policy,
-        K8ExpansionStop Stop,
+    private sealed record CrossCarrierRecursiveExpansionOutcome(
+        CrossCarrierExpansionPolicy Policy,
+        CrossCarrierExpansionStop Stop,
         int DepthUsed,
         TextMaster OutputMaster,
         OriginBasis OutputBasis,

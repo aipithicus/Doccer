@@ -7037,7 +7037,7 @@ internal static partial class Program
         Throws<ArgumentOutOfRangeException>(() => _ = snapshotted[1], "edge index validated");
     }
 
-    private static void K5aHierarchyDiamondWitnessSuppliesAncestorSupport()
+    private static void HierarchyDiamondWitnessSuppliesAncestorSupport()
     {
         // The K4c four-node diamond a -> b -> d with a -> c -> d, replayed as facts: four Parent
         // facts plus one directly supplied Ancestor(a,d) conclusion carried by two ordered

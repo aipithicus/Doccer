@@ -30,8 +30,8 @@ internal static partial class Program
             () => new MaterializationTarget("document", 0, "\t"),
             "blank materialization output tag refused");
 
-        var source0 = new TextMaster("k7-construction-source", 0, "a😀c");
-        var source1 = new TextMaster("k7-construction-source", 0, "a😀c");
+        var source0 = new TextMaster("materialization-construction-source", 0, "a😀c");
+        var source1 = new TextMaster("materialization-construction-source", 0, "a😀c");
         var basis = OriginBasis.Create(new[]
         {
             new OriginSlot("first", source0),
@@ -40,7 +40,7 @@ internal static partial class Program
         var factTable = CanonicalFactTable.Create(source0, new[]
         {
             new FactKey(
-                "k7",
+                "materialization",
                 "derivation",
                 new[] { new TextSpan(0, 1) },
                 new[] { "construction" }),
@@ -258,8 +258,8 @@ internal static partial class Program
 
     private static void MaterializationCoversRequiredMaterialShapes()
     {
-        var source0 = new TextMaster("k7-shapes-source", 4, "abcd");
-        var source1 = new TextMaster("k7-shapes-source", 4, "abcd");
+        var source0 = new TextMaster("materialization-shapes-source", 4, "abcd");
+        var source1 = new TextMaster("materialization-shapes-source", 4, "abcd");
         True(source0.IsCompatibleWith(source1), "shape source slots use compatible master clones");
         var basis = OriginBasis.Create(new[]
         {
@@ -299,7 +299,7 @@ internal static partial class Program
         };
         var plan = RewritePlan.Create(
             basis,
-            new MaterializationTarget("k7-shapes-output", 0, "result"),
+            new MaterializationTarget("materialization-shapes-output", 0, "result"),
             pieces);
         var result = RewriteMaterialization.Materialize(plan);
 
@@ -310,26 +310,26 @@ internal static partial class Program
         True(!result.Origins.IsFunctional, "contraction and many-to-many origins are nonfunctional");
         True(!result.Origins.IsInjective, "repeated and overlapping copy is noninjective");
         True(
-            K7HasEdge(result.Origins, 0, 0, 2) &&
-            K7HasEdge(result.Origins, 2, 0, 0) &&
-            K7HasEdge(result.Origins, 4, 0, 1),
+            MaterializationHasOriginEdge(result.Origins, 0, 0, 2) &&
+            MaterializationHasOriginEdge(result.Origins, 2, 0, 0) &&
+            MaterializationHasOriginEdge(result.Origins, 4, 0, 1),
             "copy pieces support reordering and overlapping repeated use");
         True(
-            K7HasEdge(result.Origins, 7, 0, 0) &&
-            K7HasEdge(result.Origins, 7, 0, 1),
+            MaterializationHasOriginEdge(result.Origins, 7, 0, 0) &&
+            MaterializationHasOriginEdge(result.Origins, 7, 0, 1),
             "one mapped output atom can contract several source atoms");
         True(
-            K7HasEdge(result.Origins, 8, 0, 2) &&
-            K7HasEdge(result.Origins, 9, 0, 2),
+            MaterializationHasOriginEdge(result.Origins, 8, 0, 2) &&
+            MaterializationHasOriginEdge(result.Origins, 9, 0, 2),
             "mapped literal can expand one source atom into several outputs");
         True(
-            K7HasEdge(result.Origins, 10, 0, 0) &&
-            K7HasEdge(result.Origins, 10, 1, 0) &&
-            K7HasEdge(result.Origins, 11, 0, 1) &&
-            K7HasEdge(result.Origins, 11, 1, 1),
+            MaterializationHasOriginEdge(result.Origins, 10, 0, 0) &&
+            MaterializationHasOriginEdge(result.Origins, 10, 1, 0) &&
+            MaterializationHasOriginEdge(result.Origins, 11, 0, 1) &&
+            MaterializationHasOriginEdge(result.Origins, 11, 1, 1),
             "mapped literal retains direct many-to-many origins across compatible slots");
         True(
-            !K7HasAnyOutputEdge(result.Origins, 12),
+            !MaterializationHasAnyOutputOrigin(result.Origins, 12),
             "synthetic shape atom carries no origin edge");
         True(
             result.UnusedSources.Count == 2 && result.UnusedSources[0].Count == 0,
@@ -343,7 +343,7 @@ internal static partial class Program
         var zeroBasis = OriginBasis.Create(Array.Empty<OriginSlot>());
         var allSyntheticPlan = RewritePlan.Create(
             zeroBasis,
-            new MaterializationTarget("k7-all-synthetic", 0, "generated"),
+            new MaterializationTarget("materialization-all-synthetic", 0, "generated"),
             new[] { OutputPiece.Synthetic(" \uD800", "zero-source generation") });
         var allSynthetic = RewriteMaterialization.Materialize(allSyntheticPlan);
         Equal(" \uD800", allSynthetic.OutputMaster.Text, "all-synthetic zero-source output is legal");
@@ -358,13 +358,13 @@ internal static partial class Program
         Throws<ArgumentException>(
             () => RewritePlan.Create(
                 zeroBasis,
-                new MaterializationTarget("k7-zero-copy", 0, "out"),
+                new MaterializationTarget("materialization-zero-copy", 0, "out"),
                 new[] { OutputPiece.Copy(0, new TextSpan(0, 1)) }),
             "zero-slot basis cannot admit copy material");
         Throws<ArgumentException>(
             () => RewritePlan.Create(
                 zeroBasis,
-                new MaterializationTarget("k7-zero-map", 0, "out"),
+                new MaterializationTarget("materialization-zero-map", 0, "out"),
                 new[]
                 {
                     OutputPiece.OriginMapped(
@@ -381,8 +381,8 @@ internal static partial class Program
 
     private static void MaterializationPreservesUtf16AtomBoundaries()
     {
-        var sourceMaster = new TextMaster("k7-utf16-source", 0, "A😀\uD800B\uDC00C");
-        var sourceBasis = K7SingletonBasis("source", sourceMaster);
+        var sourceMaster = new TextMaster("materialization-utf16-source", 0, "A😀\uD800B\uDC00C");
+        var sourceBasis = SingletonMaterializationBasis("source", sourceMaster);
         var pieces = new[]
         {
             OutputPiece.Copy(0, new TextSpan(0, 1)),
@@ -399,7 +399,7 @@ internal static partial class Program
         };
         var plan = RewritePlan.Create(
             sourceBasis,
-            new MaterializationTarget("k7-utf16-output", 0, "out"),
+            new MaterializationTarget("materialization-utf16-output", 0, "out"),
             pieces);
         var result = RewriteMaterialization.Materialize(plan);
 
@@ -417,11 +417,11 @@ internal static partial class Program
             result.Pieces.Select(piece => piece.OutputSpan).SequenceEqual(expectedPieceSpans),
             "piece spans accumulate UTF-16 widths while retaining scalar boundaries");
         True(
-            K7HasEdge(result.Origins, 0, 0, 0) &&
-            K7HasEdge(result.Origins, 1, 0, 1) &&
-            K7HasEdge(result.Origins, 2, 0, 2) &&
-            !K7HasAnyOutputEdge(result.Origins, 3) &&
-            K7HasEdge(result.Origins, 4, 0, 4),
+            MaterializationHasOriginEdge(result.Origins, 0, 0, 0) &&
+            MaterializationHasOriginEdge(result.Origins, 1, 0, 1) &&
+            MaterializationHasOriginEdge(result.Origins, 2, 0, 2) &&
+            !MaterializationHasAnyOutputOrigin(result.Origins, 3) &&
+            MaterializationHasOriginEdge(result.Origins, 4, 0, 4),
             "piece-local atom ordinals translate to global atoms rather than UTF-16 offsets");
         True(
             !result.OutputMaster.Topology.Atoms[2].IsValidScalar &&
@@ -430,20 +430,20 @@ internal static partial class Program
 
         var copiedSupplementary = RewriteMaterialization.Materialize(RewritePlan.Create(
             sourceBasis,
-            new MaterializationTarget("k7-copied-supplementary", 0, "out"),
+            new MaterializationTarget("materialization-copied-supplementary", 0, "out"),
             new[] { OutputPiece.Copy(0, new TextSpan(1, 3)) }));
         True(
             copiedSupplementary.OutputMaster.Text == "😀" &&
             copiedSupplementary.OutputMaster.Topology.AtomCount == 1 &&
             copiedSupplementary.Pieces[0].OutputSpan == new TextSpan(0, 2) &&
-            K7HasEdge(copiedSupplementary.Origins, 0, 0, 1),
+            MaterializationHasOriginEdge(copiedSupplementary.Origins, 0, 0, 1),
             "copy materializes one supplementary scalar with its exact source atom");
 
         var zeroBasis = OriginBasis.Create(Array.Empty<OriginSlot>());
         Throws<ArgumentException>(
             () => RewritePlan.Create(
                 zeroBasis,
-                new MaterializationTarget("k7-fused-boundary", 0, "out"),
+                new MaterializationTarget("materialization-fused-boundary", 0, "out"),
                 new[]
                 {
                     OutputPiece.Synthetic("\uD83D", "left unpaired unit"),
@@ -453,7 +453,7 @@ internal static partial class Program
         Throws<ArgumentException>(
             () => RewritePlan.Create(
                 sourceBasis,
-                new MaterializationTarget("k7-copy-literal-fusion", 0, "out"),
+                new MaterializationTarget("materialization-copy-literal-fusion", 0, "out"),
                 new[]
                 {
                     OutputPiece.Copy(0, new TextSpan(3, 4)),
@@ -463,7 +463,7 @@ internal static partial class Program
 
         var pairedPlan = RewritePlan.Create(
             zeroBasis,
-            new MaterializationTarget("k7-contained-pair", 0, "out"),
+            new MaterializationTarget("materialization-contained-pair", 0, "out"),
             new[] { OutputPiece.Synthetic("😀", "intentional scalar") });
         var paired = RewriteMaterialization.Materialize(pairedPlan);
         True(
@@ -473,11 +473,11 @@ internal static partial class Program
 
         var highEdge = RewriteMaterialization.Materialize(RewritePlan.Create(
             zeroBasis,
-            new MaterializationTarget("k7-high-edge", 0, "out"),
+            new MaterializationTarget("materialization-high-edge", 0, "out"),
             new[] { OutputPiece.Synthetic("\uD800", "preserved high surrogate") }));
         var lowEdge = RewriteMaterialization.Materialize(RewritePlan.Create(
             zeroBasis,
-            new MaterializationTarget("k7-low-edge", 0, "out"),
+            new MaterializationTarget("materialization-low-edge", 0, "out"),
             new[] { OutputPiece.Synthetic("\uDC00", "preserved low surrogate") }));
         True(
             highEdge.OutputMaster.Topology.AtomCount == 1 &&
@@ -489,13 +489,13 @@ internal static partial class Program
 
     private static void MaterializationResultRetainsEvidenceAndComposesExactly()
     {
-        var sourceMaster = new TextMaster("k7-result-source", 2, "abcde");
-        var sourceBasis = K7SingletonBasis("source", sourceMaster);
-        var evidenceMaster = new TextMaster("k7-unrelated-evidence", 99, "z");
+        var sourceMaster = new TextMaster("materialization-result-source", 2, "abcde");
+        var sourceBasis = SingletonMaterializationBasis("source", sourceMaster);
+        var evidenceMaster = new TextMaster("materialization-unrelated-evidence", 99, "z");
         var factTable = CanonicalFactTable.Create(evidenceMaster, new[]
         {
             new FactKey(
-                "k7",
+                "materialization",
                 "selection",
                 new[] { new TextSpan(0, 1) },
                 new[] { "chosen" }),
@@ -510,7 +510,7 @@ internal static partial class Program
                 derivation),
             OutputPiece.Synthetic("!", "explicit punctuation", derivation),
         };
-        var target = new MaterializationTarget("k7-result-output", 9, "materialized");
+        var target = new MaterializationTarget("materialization-result-output", 9, "materialized");
         var plan = RewritePlan.Create(sourceBasis, target, pieces);
         var result = RewriteMaterialization.Materialize(plan);
 
@@ -531,9 +531,9 @@ internal static partial class Program
             "result relation retains exact output and plan-source bases");
         True(
             result.Origins.Count == 2 &&
-            K7HasEdge(result.Origins, 0, 0, 0) &&
-            K7HasEdge(result.Origins, 1, 0, 2) &&
-            !K7HasAnyOutputEdge(result.Origins, 2),
+            MaterializationHasOriginEdge(result.Origins, 0, 0, 0) &&
+            MaterializationHasOriginEdge(result.Origins, 1, 0, 2) &&
+            !MaterializationHasAnyOutputOrigin(result.Origins, 2),
             "result separates origin-bearing and explicitly synthetic atoms");
 
         var partitionValid = result.Pieces.Count == pieces.Length;
@@ -601,7 +601,7 @@ internal static partial class Program
 
         var emptyPlan = RewritePlan.Create(
             sourceBasis,
-            new MaterializationTarget("k7-empty-output", 0, "empty"),
+            new MaterializationTarget("materialization-empty-output", 0, "empty"),
             Array.Empty<OutputPiece>());
         var empty = RewriteMaterialization.Materialize(emptyPlan);
         True(
@@ -613,11 +613,11 @@ internal static partial class Program
             empty.UnusedSources[0][0] == sourceMaster.Extent,
             "empty output leaves every meeting source atom unused");
 
-        var stageSource = new TextMaster("k7-stage-source", 0, "ab");
-        var stageSourceBasis = K7SingletonBasis("original", stageSource);
+        var stageSource = new TextMaster("materialization-stage-source", 0, "ab");
+        var stageSourceBasis = SingletonMaterializationBasis("original", stageSource);
         var firstPlan = RewritePlan.Create(
             stageSourceBasis,
-            new MaterializationTarget("k7-stage-one", 0, "stage-one"),
+            new MaterializationTarget("materialization-stage-one", 0, "stage-one"),
             new[]
             {
                 OutputPiece.Copy(0, new TextSpan(0, 1)),
@@ -626,7 +626,7 @@ internal static partial class Program
         var first = RewriteMaterialization.Materialize(firstPlan);
         var secondPlan = RewritePlan.Create(
             first.OutputBasis,
-            new MaterializationTarget("k7-stage-two", 0, "stage-two"),
+            new MaterializationTarget("materialization-stage-two", 0, "stage-two"),
             new[]
             {
                 OutputPiece.Copy(0, new TextSpan(0, 1)),
@@ -635,8 +635,8 @@ internal static partial class Program
         var second = RewriteMaterialization.Materialize(secondPlan);
         var composed = second.Origins.ComposeOrigins(first.Origins);
         True(
-            composed.Count == 1 && K7HasEdge(composed, 0, 0, 0) &&
-            !K7HasAnyOutputEdge(composed, 1),
+            composed.Count == 1 && MaterializationHasOriginEdge(composed, 0, 0, 0) &&
+            !MaterializationHasAnyOutputOrigin(composed, 1),
             "exact two-stage composition drops the copied synthetic atom at original-source grain");
         True(
             second.Origins.IsTotal && !composed.IsTotal &&
@@ -652,7 +652,7 @@ internal static partial class Program
         var valueIdenticalMiddle = OriginBasis.Create(first.OutputBasis.Slots);
         var valueCloneSecond = RewriteMaterialization.Materialize(RewritePlan.Create(
             valueIdenticalMiddle,
-            new MaterializationTarget("k7-stage-two-value-clone", 0, "stage-two"),
+            new MaterializationTarget("materialization-stage-two-value-clone", 0, "stage-two"),
             new[] { OutputPiece.Copy(0, new TextSpan(0, 2)) }));
         Throws<InvalidOperationException>(
             () => valueCloneSecond.Origins.ComposeOrigins(first.Origins),
@@ -665,10 +665,10 @@ internal static partial class Program
         True(
             first.OutputMaster.IsCompatibleWith(compatibleMiddleMaster),
             "composition adversary uses a compatible middle-master clone");
-        var compatibleMiddle = K7SingletonBasis(first.OutputBasis[0].Tag, compatibleMiddleMaster);
+        var compatibleMiddle = SingletonMaterializationBasis(first.OutputBasis[0].Tag, compatibleMiddleMaster);
         var compatibleCloneSecond = RewriteMaterialization.Materialize(RewritePlan.Create(
             compatibleMiddle,
-            new MaterializationTarget("k7-stage-two-compatible-clone", 0, "stage-two"),
+            new MaterializationTarget("materialization-stage-two-compatible-clone", 0, "stage-two"),
             new[] { OutputPiece.Copy(0, new TextSpan(0, 2)) }));
         Throws<InvalidOperationException>(
             () => compatibleCloneSecond.Origins.ComposeOrigins(first.Origins),
@@ -677,8 +677,8 @@ internal static partial class Program
 
     private static void MaterializationMatchesIndependentFinitePlanOracle()
     {
-        var leftMaster = new TextMaster("k7-census-left", 0, "L");
-        var rightMaster = new TextMaster("k7-census-right", 0, "R");
+        var leftMaster = new TextMaster("materialization-census-left", 0, "L");
+        var rightMaster = new TextMaster("materialization-census-right", 0, "R");
         var sourceBasis = OriginBasis.Create(new[]
         {
             new OriginSlot("left", leftMaster),
@@ -700,7 +700,7 @@ internal static partial class Program
                 }),
             OutputPiece.Synthetic("s", "census synthesis"),
         };
-        var target = new MaterializationTarget("k7-census-output", 0, "out");
+        var target = new MaterializationTarget("materialization-census-output", 0, "out");
         var payloadByCode = new[] { 'L', 'R', 'm', 'b', 's' };
         var agrees = true;
         var failure = string.Empty;
@@ -718,7 +718,7 @@ internal static partial class Program
 
         for (var length = 0; length <= 3; length++)
         {
-            var population = K7Power(5, length);
+            var population = MaterializationIntegerPower(5, length);
             for (var encoded = 0; encoded < population; encoded++)
             {
                 planCases++;
@@ -788,7 +788,7 @@ internal static partial class Program
                         2 or 3 => OutputPieceKind.OriginMapped,
                         _ => OutputPieceKind.Synthetic,
                     };
-                    var hasOrigin = K7HasAnyOutputEdge(result.Origins, position);
+                    var hasOrigin = MaterializationHasAnyOutputOrigin(result.Origins, position);
                     var isSynthetic = result.Pieces[position].Piece.Kind == OutputPieceKind.Synthetic;
                     if (result.Pieces[position].OutputSpan != new TextSpan(position, position + 1) ||
                         !ReferenceEquals(selected[position], result.Pieces[position].Piece) ||
@@ -824,10 +824,10 @@ internal static partial class Program
             $"materialization agrees with independent ordered-plan oracle; {failure}");
     }
 
-    private static OriginBasis K7SingletonBasis(string tag, TextMaster master) =>
+    private static OriginBasis SingletonMaterializationBasis(string tag, TextMaster master) =>
         OriginBasis.Create(new[] { new OriginSlot(tag, master) });
 
-    private static bool K7HasEdge(
+    private static bool MaterializationHasOriginEdge(
         OriginRelation relation,
         int outputAtomOrdinal,
         int sourceSlotOrdinal,
@@ -839,11 +839,11 @@ internal static partial class Program
         return relation.Any(edge => edge == expected);
     }
 
-    private static bool K7HasAnyOutputEdge(OriginRelation relation, int outputAtomOrdinal) =>
+    private static bool MaterializationHasAnyOutputOrigin(OriginRelation relation, int outputAtomOrdinal) =>
         relation.Any(edge =>
             edge.Output.SlotOrdinal == 0 && edge.Output.AtomOrdinal == outputAtomOrdinal);
 
-    private static int K7Power(int value, int exponent)
+    private static int MaterializationIntegerPower(int value, int exponent)
     {
         var result = 1;
         for (var i = 0; i < exponent; i++)

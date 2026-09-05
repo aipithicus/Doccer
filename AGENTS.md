@@ -43,6 +43,10 @@ Do not guess or assume architectural details—consult the relevant project sour
   timeout/cancellation, complete queued-item accounting, bounded capture, evidence writing, native
   harness-result assimilation, finalized-run pruning, and one receipt are implemented.
 - `tests/Doccer.Tests/`: Standalone, dependency-free contract harness and verification suite.
+  Source-facing test files mirror the functional folders and type/operation names under
+  `src/Doccer/`; cross-cutting checks use descriptive folders such as `Integration/` and
+  `Workloads/`. Private docket or planning indices may be cited as provenance in prose, but must
+  not name tracked source/test files, stable case IDs, commands, protocols, or documentation paths.
 - `tests/Doccer.TestRunner.FakeChild/`: Test-only controllable child-process fixture.
 - `tests/Doccer.TestRunner.Tests/`: Standalone verification for the TestRunner boundary.
 - `tests/test-plan.json`: Checked-in canonical process-isolated engine verification plan.

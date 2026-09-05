@@ -10,6 +10,10 @@ Doccer uses a high-assurance verification approach for mathematical interval alg
 - **Algebraic Law Verification**: Where a capability has algebraic laws (associativity, distributivity, converse, identity, closure), the harness checks them through exhaustive finite censuses or independent reference oracles where tractable.
 - **Oracle & Census Testing**: Complex optimization routines (such as DAG path selection or laminarization) are validated against independent, brute-force oracles and exhaustive state censuses over bounded inputs.
 - **Preservation of Residue**: Tests explicitly assert that unresolved or crossing structures (e.g. crossing laminar spans, unclosed delimiters, unmapped origin slices) are captured as structured residual data rather than silently ignored.
+- **Functional Placement and Naming**: Source-facing test files mirror the functional folders and
+  type or operation names under `src/Doccer`. Cross-cutting checks use descriptive domains such as
+  `Integration` and `Workloads`; private planning indices do not become filenames, stable case
+  IDs, commands, protocols, or documentation paths.
 
 ---
 
@@ -50,15 +54,16 @@ The repository maintains specific baseline verification suites:
 ### F. Materialization ($K7$)
 - Complete 156-plan / 430-piece census covering reconstruction, origin/synthetic posture, exact-middle composition, and unused-source residue accounting.
 
-### G. Cross-carrier seams and named workloads ($K8$ / $A0$)
+### G. Cross-carrier integration and named engine workloads
 - Five bounded cross-carrier witnesses cover multi-family pairing with residue, two-path ambiguity,
   adapter-budgeted chunks, fixed macro substitution with composed origins, and externally
   resource-bounded recursive expansion.
 - One differential manifest fixes eleven named dense/sparse selection, validation, graph/path,
   fact/support, adjacency, vector, origin, and materialization workloads. Timing is a separate
   Release-only evidence command and never a test threshold.
-- See the [executable recipes](recipes/k8-a0.md) and
-  [typed seam report](reports/k8-a0-seam-report.md).
+- See the
+  [executable recipes](recipes/cross-carrier-integration-and-engine-workloads.md) and
+  [typed seam report](reports/cross-carrier-integration-and-engine-workload-baseline.md).
 
 ---
 
@@ -90,12 +95,13 @@ On failure, use progressive disclosure instead of rerunning the whole suite with
 dotnet run --project tests/Doccer.Tests/Doccer.Tests.csproj -- run --case <stable-id> --details
 ```
 
-K8 cases are ordinary catalog entries. A0 measurement is deliberately outside the test pass/fail
-path; it requires Release configuration, writes versioned JSON beneath ignored `build/a0/`, and
-checks every sample against an independent result checksum:
+Cross-carrier integration cases are ordinary catalog entries. Engine workload measurement is
+deliberately outside the test pass/fail path; it requires Release configuration, writes versioned
+JSON beneath ignored `build/workload-baselines/`, and checks every sample against an independent
+result checksum:
 
 ```powershell
-dotnet run --configuration Release --project tests/Doccer.Tests/Doccer.Tests.csproj -- measure-a0 --output build/a0/a0-baseline.json
+dotnet run --configuration Release --project tests/Doccer.Tests/Doccer.Tests.csproj -- measure-workloads --output build/workload-baselines/engine-workload-baseline.json
 ```
 
 The artifact records runtime/CPU identity, warmups, repetitions, raw elapsed/allocation samples,

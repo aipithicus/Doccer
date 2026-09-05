@@ -810,7 +810,8 @@ On 2026-09-05, the live checkout produced:
 
 These figures are an observation of that checkout, not part of the portable contract and not a
 performance threshold. The live working tree contained pre-existing in-progress documentation and
-K8/A0 changes, so this is not an attestation of one clean commit.
+later cross-carrier integration and engine-workload changes, so this is not an attestation of one
+clean commit.
 
 ## 11. Cross-language portability blueprint
 

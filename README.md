@@ -88,8 +88,8 @@ not depend on Nushell, PowerShell, or another command shell.
 | [**DEVELOPMENT.md**](DEVELOPMENT.md) | Practical guide for building, testing, and packaging. |
 | [**AGENTS.md**](AGENTS.md) | Agent orientation, layer order invariants, and working rules. |
 | [**Verification & Testing**](docs/testing.md) | Verification approach, bounded law checks, and oracle and census baselines. |
-| [**K8 + A0 Seam Report**](docs/reports/k8-a0-seam-report.md) | Five cross-carrier qualifications, failed-composition evidence, portability needs, and one mechanics-grade workload baseline. |
-| [**K8 + A0 Recipes**](docs/recipes/k8-a0.md) | Exact case-selection and Release measurement commands. |
+| [**Cross-carrier Integration and Engine Workload Report**](docs/reports/cross-carrier-integration-and-engine-workload-baseline.md) | Five cross-carrier qualifications, failed-composition evidence, portability needs, and one mechanics-grade workload baseline. |
+| [**Cross-carrier Integration and Engine Workload Recipes**](docs/recipes/cross-carrier-integration-and-engine-workloads.md) | Exact case-selection and Release measurement commands. |
 | [**Architecture Overview**](docs/architecture/overview.md) | Capability library vs. engine, coordinate spaces (`TextMaster`), and Unicode posture. |
 | [**Current Design Principles**](docs/architecture/design-principles.md) | Rationale for the shape of the implemented kernel and questions for evaluating additions. |
 | [**Carriers & Naming Conventions**](docs/specification/carriers.md) | Many-sorted algebra ($P, L, I, C, F, O, B, U$), identity rules, and current naming conventions. |

@@ -1,16 +1,17 @@
-# K8 + A0 seam qualification report
+# Cross-carrier integration and engine workload baseline
 
-K8 closes as an executable integration qualification over the existing K0-K7 carriers. The
-qualification adds no public engine type and no adapter-owned semantics to `src/Doccer`. Five
-test-only recipes retain the exact carrier objects needed by each operation, name every
-identity-forgetting projection and residual population, and make non-composable seams observable.
+This executable integration qualification crosses the implemented carrier families without adding
+a public engine type or adapter-owned semantics to `src/Doccer`. Five test-only recipes retain the
+exact carrier objects needed by each operation, name every identity-forgetting projection and
+residual population, and make non-composable seams observable.
 
-The executable cases live in `tests/Doccer.Tests/K8SeamTests.cs`. Their test-local seam packets are
+The executable cases live in
+`tests/Doccer.Tests/Integration/CrossCarrierIntegrationTests.cs`. Their test-local seam packets are
 asserted to contain input/result sorts, exact bases, projection loss, residue, policy/resource
 stamps, scale posture, portability requirements, and failed-composition evidence. The packets are
 not a shadow public carrier; this report is their durable human-readable rendering.
 
-## W1 — multi-family pairing with residue
+## Multi-family pairing with residue
 
 - **Input sorts and bases:** one `TextMaster` for `)([])(`; one exact six-row `SpanBatch`; exact
   open and close `ClaimSelection` values over that same batch; one `PairingPolicy` named
@@ -25,13 +26,14 @@ not a shadow public carrier; this report is their durable human-readable renderi
 - **Policy/resources/scale:** exact family-key policy; six non-overlapping occurrences; one bounded
   strict-stack reference pass. This is not a throughput claim.
 - **Portability needs:** source identity, ordered claim rows, role ordinals, and a portable
-  definition/version for the family-key policy. K8 supplies none of F2's process identity.
+  definition/version for the family-key policy. This test-only seam supplies no durable
+  cross-process identity.
 - **Failed composition:** there is no `SpanSet -> CandidateRegionGraph` composition that could
   preserve pair endpoints. Recollecting projected geometry would mint a new occurrence basis and
   is therefore not represented as successful composition. `ClaimPairView.ComposePairs` also
   refuses a text-compatible recollected batch as its middle basis.
 
-## W2 — ambiguous two-path graph
+## Ambiguous two-path graph
 
 - **Input sorts and bases:** one `TextMaster` for `abc`; one exact four-row `SpanBatch`; an all-row
   `ClaimSelection`; a `CandidateRegionGraph` over `[0,3)`; and a graph-stamped
@@ -48,11 +50,12 @@ not a shadow public carrier; this report is their durable human-readable renderi
   complete paths. Reference and production-DP results are bounded here; no cross-batch invariance
   is claimed.
 - **Portability needs:** source identity, ordered batch rows, graph window/candidate ordinals,
-  retained costs, and the objective/tie policy definition. F2 is still required for replay.
+  retained costs, and the objective/tie policy definition. Durable process identity is still
+  required for replay.
 - **Failed composition:** a text-compatible recollection is a different `SpanBatch`. Supplying its
   selection to the original graph problem is rejected as an exact-basis mismatch.
 
-## W3 — budgeted flat chunks
+## Budgeted flat chunks
 
 - **Input sorts and bases:** one exact seven-row chunk `SpanBatch`; an all-candidate
   `CandidateRegionGraph` over `[0,6)`; an adapter-measured admissible `ClaimSelection`; a
@@ -68,12 +71,12 @@ not a shadow public carrier; this report is their durable human-readable renderi
   `k8-adapter-chunk-cost`; unit `penalty-points`; seven candidates. Measure and cost meanings stay
   outside the kernel. The result is exact for this bounded problem only.
 - **Portability needs:** source/batch identity, measure algorithm/version, threshold, retained
-  cost table, graph window, and tie policy. K8 does not serialize them.
+  cost table, graph window, and tie policy. The test-only seam does not serialize them.
 - **Failed composition:** the maximum-1 admission is explicitly a stamped failed complete-path
   result. It is not silently widened to satisfy the graph. A policy stamped by a text-compatible
   recollected graph is separately refused by the original exact-basis problem.
 
-## W4 — fixed macro substitution with composed origins
+## Fixed macro substitution with composed origins
 
 - **Input sorts and bases:** root `TextMaster` `say: @!`; `TextSlice` `[5,7)`; exact singleton root
   and child `OriginBasis` values; a two-piece `RewritePlan` (`OriginMapped("hi")`, then `Copy("!")`)
@@ -88,11 +91,11 @@ not a shadow public carrier; this report is their durable human-readable renderi
   relational composition, and an exact `MaterializationTarget`. This is a bounded recipe rather
   than a general macro language.
 - **Portability needs:** root identity, slice window, basis tags, macro table, ordered pieces,
-  target identity, and origin edges. F2 must define process-stable identities before replay.
+  target identity, and origin edges. Process-stable identities must be defined before replay.
 - **Failed composition:** even a value-identical clone of the child `OriginBasis` is refused as the
   shared middle of `ComposeOrigins`; the exact basis object must be reused.
 
-## W5 — resource-bounded recursive expansion
+## Resource-bounded recursive expansion
 
 - **Input sorts and bases:** root `TextMaster` `${A}`; document-supplied definitions
   `A -> x${B}`, `B -> y${C}`, `C -> z`; a test-local leftmost-occurrence policy; and an exact
@@ -109,17 +112,18 @@ not a shadow public carrier; this report is their durable human-readable renderi
   `MaxDepth=2`, `MaxOutputUtf16Units=32`; two performed stages in the bounded run. Recursion,
   definition lookup, and stop policy are test/adapter orchestration, not kernel semantics.
 - **Portability needs:** root identity, definition bytes and lookup/parser version, policy and
-  limits, stage targets, basis tags, and every origin relation. K8 deliberately stops before F2.
+  limits, stage targets, basis tags, and every origin relation. The test-only seam deliberately
+  stops before durable cross-process replay identity.
 - **Failed composition:** depth/output exhaustion is returned with exact unresolved-occurrence
   residue. A cloned stage basis is separately refused by exact origin composition.
 
-## A0 named workload baseline
+## Named engine workload baseline
 
-`tests/Doccer.Tests/A0Workloads.cs` defines eleven fixed workloads. A normal catalog case executes
-each once against its independent checksum. The Release-only `measure-a0` command performs three
-warmups and nine measured repetitions, records every elapsed-time/allocation sample, uses the
-median statistic, and requires every warmup and repetition to match its independent reference.
-No threshold is asserted.
+`tests/Doccer.Tests/Workloads/EngineWorkloadTests.cs` defines eleven fixed workloads. A normal
+catalog case executes each once against its independent checksum. The Release-only
+`measure-workloads` command performs three warmups and nine measured repetitions, records every
+elapsed-time/allocation sample, uses the median statistic, and requires every warmup and repetition
+to match its independent reference. No threshold is asserted.
 
 The baseline below was recorded at `2026-09-04T21:47:54Z` with .NET 10.0.5, `win-x64`, Windows
 10.0.26220, process architecture X64, `Intel64 Family 6 Model 170 Stepping 4, GenuineIntel`, and 18
@@ -141,15 +145,16 @@ fixtures on this run.
 | `origin-composition-dense-many-to-many` | 128 outputs, 512 composed edges | 410,400 | 141,792 | pass |
 | `materialization-copy-heavy-reordered` | 512 pieces, 8,192 output units | 8,551,900 | 2,079,160 | pass |
 
-The raw run artifact is intentionally generated beneath ignored `build/a0/`; the checked-in
-recipe explains how to regenerate it. These numbers justify no statement that one carrier,
-algorithm, runtime, or machine is generally faster than another. Any A1, A2, V2, F4, packed, or
-incremental backend still needs its own named comparison and differential gate.
+New raw run artifacts are intentionally generated beneath ignored `build/workload-baselines/`;
+the checked-in recipe explains how to regenerate them. These numbers justify no statement that one
+carrier, algorithm, runtime, or machine is generally faster than another. Any accelerated,
+indexed, packed, incremental, or otherwise alternative backend still needs its own named
+comparison and differential gate.
 
 ## Verification at close
 
-- Release A0 receipt: 11 workloads, 3 warmups, 9 repetitions, every differential check passed;
-  raw artifact `build/a0/k8-a0-baseline-20260904.json`.
+- Release engine-workload receipt: 11 workloads, 3 warmups, 9 repetitions, every differential
+  check passed; the raw artifact was retained beneath the ignored build tree at capture time.
 - Canonical process-isolated engine receipt: 114 passed, 0 failed/cancelled/timed-out/not-started/
   infrastructure-error; 2,816 assertions; no retained case details; summary
   `build/test-runs/20260904T215345Z-cbef24a1936d44ad/summary.json`.
@@ -163,4 +168,4 @@ incremental backend still needs its own named comparison and differential gate.
 The five seams are representable without widening the public carrier algebra. The only rejected
 paths are deliberate contract boundaries: identity-forgetting projections, exact-basis mismatch,
 and explicit policy/resource exhaustion. Cross-process equivalence and durable identities remain
-CLI/F2 work.
+explicit cross-process replay and durable-identity work.

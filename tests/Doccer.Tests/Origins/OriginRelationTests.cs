@@ -9,7 +9,7 @@ internal static partial class Program
 {
     private static void OriginBasisAndRelationAreExactCanonicalValues()
     {
-        var master = new TextMaster("k6-basis", 3, "a😀");
+        var master = new TextMaster("origin-basis", 3, "a😀");
         var first = new OriginSlot("stage", master);
         var second = new OriginSlot("STAGE", master);
         var suppliedSlots = new List<OriginSlot> { first, second };
@@ -50,7 +50,7 @@ internal static partial class Program
         Throws<ArgumentOutOfRangeException>(() => new OriginAtom(-1, 0), "negative origin slot refused");
         Throws<ArgumentOutOfRangeException>(() => new OriginAtom(0, -1), "negative text atom refused");
 
-        var twoAtom = new TextMaster("k6-relation", 0, "ab");
+        var twoAtom = new TextMaster("origin-relation", 0, "ab");
         var outputBasis = OriginBasis.Create(new[]
         {
             new OriginSlot("out-0", twoAtom),
@@ -144,8 +144,8 @@ internal static partial class Program
             zeroIdentity.IsEmpty && zeroIdentity.IsFunctional &&
             zeroIdentity.IsTotal && zeroIdentity.IsInjective,
             "zero-slot identity is vacuously total and one-to-one");
-        var emptyMaster = new TextMaster("k6-empty", 0, string.Empty);
-        var emptySingleton = K6SingletonBasis("empty", emptyMaster);
+        var emptyMaster = new TextMaster("origin-empty", 0, string.Empty);
+        var emptySingleton = SingletonOriginBasis("empty", emptyMaster);
         var emptyIdentity = OriginRelation.Identity(emptySingleton);
         True(
             emptyIdentity.IsEmpty && emptyIdentity.IsTotal,
@@ -157,22 +157,22 @@ internal static partial class Program
 
     private static void OriginCompositionMatchesIndependentBooleanMatrixOracle()
     {
-        var masterA = new TextMaster("k6-matrix-a", 0, "ab");
-        var masterB = new TextMaster("k6-matrix-b", 0, "cd");
-        var masterC = new TextMaster("k6-matrix-c", 0, "ef");
-        var masterD = new TextMaster("k6-matrix-d", 0, "gh");
-        var a = K6SingletonBasis("A", masterA);
-        var b = K6SingletonBasis("B", masterB);
-        var c = K6SingletonBasis("C", masterC);
-        var d = K6SingletonBasis("D", masterD);
+        var masterA = new TextMaster("origin-matrix-a", 0, "ab");
+        var masterB = new TextMaster("origin-matrix-b", 0, "cd");
+        var masterC = new TextMaster("origin-matrix-c", 0, "ef");
+        var masterD = new TextMaster("origin-matrix-d", 0, "gh");
+        var a = SingletonOriginBasis("A", masterA);
+        var b = SingletonOriginBasis("B", masterB);
+        var c = SingletonOriginBasis("C", masterC);
+        var d = SingletonOriginBasis("D", masterD);
         var ab = new OriginRelation[16];
         var bc = new OriginRelation[16];
         var cd = new OriginRelation[16];
         for (var mask = 0; mask < 16; mask++)
         {
-            ab[mask] = K6RelationFromMask(a, b, mask);
-            bc[mask] = K6RelationFromMask(b, c, mask);
-            cd[mask] = K6RelationFromMask(c, d, mask);
+            ab[mask] = OriginRelationFromMask(a, b, mask);
+            bc[mask] = OriginRelationFromMask(b, c, mask);
+            cd[mask] = OriginRelationFromMask(c, d, mask);
         }
 
         var agrees = true;
@@ -194,10 +194,10 @@ internal static partial class Program
         {
             relationCases++;
             var relation = ab[mask];
-            if (K6MaskOf(relation) != mask ||
-                relation.IsFunctional != K6MaskIsFunctional(mask) ||
-                relation.IsTotal != K6MaskIsTotal(mask) ||
-                relation.IsInjective != K6MaskIsInjective(mask) ||
+            if (OriginRelationMask(relation) != mask ||
+                relation.IsFunctional != OriginMaskIsFunctional(mask) ||
+                relation.IsTotal != OriginMaskIsTotal(mask) ||
+                relation.IsInjective != OriginMaskIsInjective(mask) ||
                 !OriginRelation.Identity(a).ComposeOrigins(relation).Equals(relation) ||
                 !relation.ComposeOrigins(OriginRelation.Identity(b)).Equals(relation))
             {
@@ -207,9 +207,9 @@ internal static partial class Program
             for (var nextMask = 0; nextMask < 16; nextMask++)
             {
                 pairCases++;
-                var expected = K6ComposeMask(mask, nextMask);
+                var expected = ComposeOriginRelationMasks(mask, nextMask);
                 var composed = relation.ComposeOrigins(bc[nextMask]);
-                if (K6MaskOf(composed) != expected ||
+                if (OriginRelationMask(composed) != expected ||
                     !ReferenceEquals(a, composed.OutputBasis) ||
                     !ReferenceEquals(c, composed.SourceBasis))
                 {
@@ -229,9 +229,9 @@ internal static partial class Program
                     var leftAssociated = composed.ComposeOrigins(cd[lastMask]);
                     var rightAssociated = relation.ComposeOrigins(
                         bc[nextMask].ComposeOrigins(cd[lastMask]));
-                    var tripleExpected = K6ComposeMask(expected, lastMask);
+                    var tripleExpected = ComposeOriginRelationMasks(expected, lastMask);
                     if (!leftAssociated.Equals(rightAssociated) ||
-                        K6MaskOf(leftAssociated) != tripleExpected)
+                        OriginRelationMask(leftAssociated) != tripleExpected)
                     {
                         Fail(
                             $"associativity mismatch at masks {mask}, {nextMask}, {lastMask}");
@@ -246,7 +246,7 @@ internal static partial class Program
         True(agrees, $"origin composition agrees with independent Boolean-matrix oracle; {failure}");
 
         var sameMasterClone = OriginBasis.Create(b.Slots);
-        var sameValueNext = K6RelationFromMask(sameMasterClone, c, 9);
+        var sameValueNext = OriginRelationFromMask(sameMasterClone, c, 9);
         Throws<InvalidOperationException>(
             () => ab[9].ComposeOrigins(sameValueNext),
             "value-identical middle-basis clone refused");
@@ -256,29 +256,29 @@ internal static partial class Program
             masterB.Revision,
             masterB.Text);
         True(masterB.IsCompatibleWith(compatibleMasterClone), "middle-master adversary is compatible");
-        var compatibleBasisClone = K6SingletonBasis("B", compatibleMasterClone);
+        var compatibleBasisClone = SingletonOriginBasis("B", compatibleMasterClone);
         Throws<InvalidOperationException>(
-            () => ab[9].ComposeOrigins(K6RelationFromMask(compatibleBasisClone, c, 9)),
+            () => ab[9].ComposeOrigins(OriginRelationFromMask(compatibleBasisClone, c, 9)),
             "compatible middle-master clone refused");
         Throws<ArgumentNullException>(
             () => ab[9].ComposeOrigins(null!),
             "null next origin relation refused");
 
-        var duplicateWitnessLeft = K6RelationFromMask(a, b, 3);
-        var duplicateWitnessRight = K6RelationFromMask(b, c, 5);
+        var duplicateWitnessLeft = OriginRelationFromMask(a, b, 3);
+        var duplicateWitnessRight = OriginRelationFromMask(b, c, 5);
         Equal(
-            K6PopCount(K6ComposeMask(3, 5)),
+            OriginMaskPopulation(ComposeOriginRelationMasks(3, 5)),
             duplicateWitnessLeft.ComposeOrigins(duplicateWitnessRight).Count,
             "composition forgets duplicate middle witnesses");
     }
 
     private static void OriginProjectionPreservesMaterialShapeAndSlotIdentity()
     {
-        var outputMaster = new TextMaster("k6-projection-output", 0, "xyz");
-        var source0 = new TextMaster("k6-projection-source", 4, "a😀bc");
-        var source1 = new TextMaster("k6-projection-source", 4, "a😀bc");
+        var outputMaster = new TextMaster("origin-projection-output", 0, "xyz");
+        var source0 = new TextMaster("origin-projection-source", 4, "a😀bc");
+        var source1 = new TextMaster("origin-projection-source", 4, "a😀bc");
         True(source0.IsCompatibleWith(source1), "projection source-slot masters are compatible clones");
-        var output = K6SingletonBasis("output", outputMaster);
+        var output = SingletonOriginBasis("output", outputMaster);
         var source = OriginBasis.Create(new[]
         {
             new OriginSlot("left", source0),
@@ -330,9 +330,9 @@ internal static partial class Program
             () => relation.ProjectSources(0, new TextSpan(0, 4)),
             "out-of-bounds projection span refused");
 
-        var scalarOutput = K6SingletonBasis(
+        var scalarOutput = SingletonOriginBasis(
             "scalar-output",
-            new TextMaster("k6-projection-scalar", 0, "😀"));
+            new TextMaster("origin-projection-scalar", 0, "😀"));
         var scalarRelation = OriginRelation.None(scalarOutput, OriginBasis.Create(Array.Empty<OriginSlot>()));
         Throws<ArgumentException>(
             () => scalarRelation.ProjectSources(0, new TextSpan(1, 1)),
@@ -345,10 +345,10 @@ internal static partial class Program
             0,
             zeroSourceRelation.ProjectSources(0, new TextSpan(0, 1)).Count,
             "zero-slot source basis projects to a zero-entry image");
-        var emptySourceMaster = new TextMaster("k6-projection-empty", 0, string.Empty);
+        var emptySourceMaster = new TextMaster("origin-projection-empty", 0, string.Empty);
         var emptySourceRelation = OriginRelation.None(
             output,
-            K6SingletonBasis("empty", emptySourceMaster));
+            SingletonOriginBasis("empty", emptySourceMaster));
         var emptySourceProjection = emptySourceRelation.ProjectSources(0, new TextSpan(0, 1));
         Equal(1, emptySourceProjection.Count, "singleton empty source retains one projection entry");
         True(
@@ -356,11 +356,11 @@ internal static partial class Program
             ReferenceEquals(emptySourceMaster, emptySourceProjection[0].Master),
             "singleton empty source projection retains exact empty master");
 
-        var oneOutput = K6SingletonBasis(
+        var oneOutput = SingletonOriginBasis(
             "one-output",
-            new TextMaster("k6-one-output", 0, "x"));
-        var oneSource0 = new TextMaster("k6-one-source", 0, "q");
-        var oneSource1 = new TextMaster("k6-one-source", 0, "q");
+            new TextMaster("origin-one-output", 0, "x"));
+        var oneSource0 = new TextMaster("origin-one-source", 0, "q");
+        var oneSource1 = new TextMaster("origin-one-source", 0, "q");
         var duplicateCompatibleSlots = OriginBasis.Create(new[]
         {
             new OriginSlot("first", oneSource0),
@@ -385,12 +385,12 @@ internal static partial class Program
             bothSlots.IsTotal && !bothSlots.IsFunctional && bothSlots.IsInjective,
             "one-to-many contraction shape queries remain explicit");
 
-        var duplicateOutput = K6SingletonBasis(
+        var duplicateOutput = SingletonOriginBasis(
             "duplicate-output",
-            new TextMaster("k6-duplicate-output", 0, "uv"));
-        var duplicateSource = K6SingletonBasis(
+            new TextMaster("origin-duplicate-output", 0, "uv"));
+        var duplicateSource = SingletonOriginBasis(
             "duplicate-source",
-            new TextMaster("k6-duplicate-source", 0, "q"));
+            new TextMaster("origin-duplicate-source", 0, "q"));
         var duplication = OriginRelation.Create(duplicateOutput, duplicateSource, new[]
         {
             new OriginEdge(new OriginAtom(0, 0), new OriginAtom(0, 0)),
@@ -403,10 +403,10 @@ internal static partial class Program
 
     private static void TextSliceEmbedsAsExactFunctionalOrigin()
     {
-        var parent = new TextMaster("k6-slice-parent", 8, "xA😀\uD800By");
+        var parent = new TextMaster("origin-slice-parent", 8, "xA😀\uD800By");
         var slice = TextSlice.Create(parent, new TextSpan(1, 6));
-        var childBasis = K6SingletonBasis("child", slice.Child);
-        var parentBasis = K6SingletonBasis("parent", parent);
+        var childBasis = SingletonOriginBasis("child", slice.Child);
+        var parentBasis = SingletonOriginBasis("parent", parent);
         var relation = OriginRelation.FromTextSlice(slice, childBasis, parentBasis);
 
         Equal(slice.Child.Topology.AtomCount, relation.Count, "slice embeds every child atom once");
@@ -472,7 +472,7 @@ internal static partial class Program
         Throws<InvalidOperationException>(
             () => OriginRelation.FromTextSlice(
                 slice,
-                K6SingletonBasis("child", compatibleChild),
+                SingletonOriginBasis("child", compatibleChild),
                 parentBasis),
             "compatible child-master clone refused by slice adapter");
         var compatibleParent = new TextMaster(parent.DocumentId, parent.Revision, parent.Text);
@@ -481,13 +481,13 @@ internal static partial class Program
             () => OriginRelation.FromTextSlice(
                 slice,
                 childBasis,
-                K6SingletonBasis("parent", compatibleParent)),
+                SingletonOriginBasis("parent", compatibleParent)),
             "compatible parent-master clone refused by slice adapter");
 
         var emptySlice = TextSlice.Create(parent, new TextSpan(1, 1));
         var emptyRelation = OriginRelation.FromTextSlice(
             emptySlice,
-            K6SingletonBasis("empty-child", emptySlice.Child),
+            SingletonOriginBasis("empty-child", emptySlice.Child),
             parentBasis);
         True(
             emptyRelation.IsEmpty && emptyRelation.IsFunctional &&
@@ -496,9 +496,9 @@ internal static partial class Program
 
         var outer = TextSlice.Create(parent, new TextSpan(1, 6));
         var inner = TextSlice.Create(outer.Child, new TextSpan(1, 4));
-        var innerBasis = K6SingletonBasis("inner", inner.Child);
-        var middleBasis = K6SingletonBasis("middle", outer.Child);
-        var rootBasis = K6SingletonBasis("root", parent);
+        var innerBasis = SingletonOriginBasis("inner", inner.Child);
+        var middleBasis = SingletonOriginBasis("middle", outer.Child);
+        var rootBasis = SingletonOriginBasis("root", parent);
         var innerToMiddle = OriginRelation.FromTextSlice(inner, innerBasis, middleBasis);
         var middleToRoot = OriginRelation.FromTextSlice(outer, middleBasis, rootBasis);
         var composed = innerToMiddle.ComposeOrigins(middleToRoot);
@@ -509,7 +509,7 @@ internal static partial class Program
             var rootSpan = outer.ToParent(inner.ToParent(innerSpan));
             directEdges.Add(new OriginEdge(
                 new OriginAtom(0, atomOrdinal),
-                new OriginAtom(0, K6FindAtomOrdinal(parent, rootSpan))));
+                new OriginAtom(0, FindOriginAtomOrdinal(parent, rootSpan))));
         }
 
         var direct = OriginRelation.Create(innerBasis, rootBasis, directEdges);
@@ -529,10 +529,10 @@ internal static partial class Program
             "slice-chain composition requires reuse of the exact middle basis");
     }
 
-    private static OriginBasis K6SingletonBasis(string tag, TextMaster master) =>
+    private static OriginBasis SingletonOriginBasis(string tag, TextMaster master) =>
         OriginBasis.Create(new[] { new OriginSlot(tag, master) });
 
-    private static OriginRelation K6RelationFromMask(
+    private static OriginRelation OriginRelationFromMask(
         OriginBasis outputBasis,
         OriginBasis sourceBasis,
         int mask)
@@ -554,7 +554,7 @@ internal static partial class Program
         return OriginRelation.Create(outputBasis, sourceBasis, edges);
     }
 
-    private static int K6MaskOf(OriginRelation relation)
+    private static int OriginRelationMask(OriginRelation relation)
     {
         var mask = 0;
         foreach (var edge in relation)
@@ -571,7 +571,7 @@ internal static partial class Program
         return mask;
     }
 
-    private static int K6ComposeMask(int left, int right)
+    private static int ComposeOriginRelationMasks(int left, int right)
     {
         var result = 0;
         for (var output = 0; output < 2; output++)
@@ -596,12 +596,12 @@ internal static partial class Program
         return result;
     }
 
-    private static bool K6MaskIsFunctional(int mask)
+    private static bool OriginMaskIsFunctional(int mask)
     {
         for (var output = 0; output < 2; output++)
         {
             var row = (mask >> (output * 2)) & 3;
-            if (K6PopCount(row) > 1)
+            if (OriginMaskPopulation(row) > 1)
             {
                 return false;
             }
@@ -610,10 +610,10 @@ internal static partial class Program
         return true;
     }
 
-    private static bool K6MaskIsTotal(int mask) =>
+    private static bool OriginMaskIsTotal(int mask) =>
         (mask & 3) != 0 && (mask & 12) != 0;
 
-    private static bool K6MaskIsInjective(int mask)
+    private static bool OriginMaskIsInjective(int mask)
     {
         for (var source = 0; source < 2; source++)
         {
@@ -627,7 +627,7 @@ internal static partial class Program
         return true;
     }
 
-    private static int K6PopCount(int value)
+    private static int OriginMaskPopulation(int value)
     {
         var count = 0;
         while (value != 0)
@@ -639,7 +639,7 @@ internal static partial class Program
         return count;
     }
 
-    private static int K6FindAtomOrdinal(TextMaster master, TextSpan span)
+    private static int FindOriginAtomOrdinal(TextMaster master, TextSpan span)
     {
         for (var atomOrdinal = 0; atomOrdinal < master.Topology.AtomCount; atomOrdinal++)
         {

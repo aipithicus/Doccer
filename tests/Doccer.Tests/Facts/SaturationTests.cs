@@ -460,7 +460,7 @@ internal static partial class Program
         Equal(5, reference.Graph.Count, "permutation fixture retains initial and enabled support");
     }
 
-    private static void K5bHierarchyDiamondSaturatesCanonically()
+    private static void HierarchyDiamondSaturatesCanonically()
     {
         var master = new TextMaster("saturation-diamond", 0, "wxyz");
         var a = new TextSpan(1, 2);

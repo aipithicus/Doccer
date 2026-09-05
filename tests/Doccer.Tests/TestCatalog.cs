@@ -40,7 +40,7 @@ internal static partial class Program
         {
             "list" => ListCases(args),
             "run" => RunSelectedCase(args),
-            "measure-a0" => RunA0Measurements(args),
+            "measure-workloads" => RunWorkloadMeasurements(args),
             "help" or "--help" or "-h" => WriteHelp(),
             _ => UsageError($"Unknown command '{args[0]}'."),
         };
@@ -245,12 +245,12 @@ internal static partial class Program
               Doccer.Tests --details
               Doccer.Tests list [--format text|json]
               Doccer.Tests run --case <stable-id> [--format text|json] [--details]
-              Doccer.Tests measure-a0 --output <build-relative-json-path>
+              Doccer.Tests measure-workloads --output <build-relative-json-path>
               Doccer.Tests --help
 
             No arguments runs the complete catalog serially and emits one receipt.
             --details additionally emits exception detail after a failure receipt.
-            measure-a0 requires a Release build and writes mechanics-grade evidence beneath build/.
+            measure-workloads requires a Release build and writes mechanics-grade evidence beneath build/.
             """);
         return 0;
     }
@@ -359,14 +359,14 @@ internal static partial class Program
             Parallel(nameof(FactReferenceIsAnExactTableHandle), FactReferenceIsAnExactTableHandle),
             Parallel(nameof(SupportEdgeIsAnOrderedEvidenceValue), SupportEdgeIsAnOrderedEvidenceValue),
             Parallel(nameof(SupportHypergraphValidatesExactBasesAndRetainsAlternatives), SupportHypergraphValidatesExactBasesAndRetainsAlternatives),
-            Parallel(nameof(K5aHierarchyDiamondWitnessSuppliesAncestorSupport), K5aHierarchyDiamondWitnessSuppliesAncestorSupport),
+            Parallel(nameof(HierarchyDiamondWitnessSuppliesAncestorSupport), HierarchyDiamondWitnessSuppliesAncestorSupport),
             Parallel(nameof(GroundRuleIsAnOrderedGroundEvidenceValue), GroundRuleIsAnOrderedGroundEvidenceValue),
             Parallel(nameof(SaturationProblemValidatesAndCanonicalizesRules), SaturationProblemValidatesAndCanonicalizesRules),
             Parallel(nameof(FactSaturationHandlesFinitePositiveClosure), FactSaturationHandlesFinitePositiveClosure),
             Parallel(nameof(FactSaturationRetainsCompleteEnabledSupport), FactSaturationRetainsCompleteEnabledSupport),
             Parallel(nameof(FactSaturationRebasesThroughKeyOrderShifts), FactSaturationRebasesThroughKeyOrderShifts),
             Parallel(nameof(FactSaturationIsPermutationIndependent), FactSaturationIsPermutationIndependent),
-            Parallel(nameof(K5bHierarchyDiamondSaturatesCanonically), K5bHierarchyDiamondSaturatesCanonically),
+            Parallel(nameof(HierarchyDiamondSaturatesCanonically), HierarchyDiamondSaturatesCanonically),
             Parallel(nameof(FactSaturationMatchesIndependentBoundedOracle), FactSaturationMatchesIndependentBoundedOracle),
             Parallel(nameof(BooleanVectorIsALogicalSequenceValue), BooleanVectorIsALogicalSequenceValue),
             Parallel(nameof(BooleanVectorAlgebraMatchesIndependentOracle), BooleanVectorAlgebraMatchesIndependentOracle),
@@ -386,12 +386,12 @@ internal static partial class Program
             Parallel(nameof(MaterializationPreservesUtf16AtomBoundaries), MaterializationPreservesUtf16AtomBoundaries),
             Parallel(nameof(MaterializationResultRetainsEvidenceAndComposesExactly), MaterializationResultRetainsEvidenceAndComposesExactly),
             Parallel(nameof(MaterializationMatchesIndependentFinitePlanOracle), MaterializationMatchesIndependentFinitePlanOracle),
-            Parallel(nameof(K8MultiFamilyPairingRetainsResidueAndReportsSeam), K8MultiFamilyPairingRetainsResidueAndReportsSeam),
-            Parallel(nameof(K8AmbiguousTwoPathGraphRetainsPoliciesAndReportsSeam), K8AmbiguousTwoPathGraphRetainsPoliciesAndReportsSeam),
-            Parallel(nameof(K8BudgetedChunksRetainAdapterMeasureCostAndReportsSeam), K8BudgetedChunksRetainAdapterMeasureCostAndReportsSeam),
-            Parallel(nameof(K8FixedMacroSubstitutionComposesOriginsAndReportsSeam), K8FixedMacroSubstitutionComposesOriginsAndReportsSeam),
-            Parallel(nameof(K8RecursiveExpansionStopsAtResourceBoundaryAndReportsSeam), K8RecursiveExpansionStopsAtResourceBoundaryAndReportsSeam),
-            Parallel(nameof(A0WorkloadManifestIsBoundedAndDifferential), A0WorkloadManifestIsBoundedAndDifferential),
+            Parallel(nameof(CrossCarrierMultiFamilyPairingRetainsResidueAndReportsSeam), CrossCarrierMultiFamilyPairingRetainsResidueAndReportsSeam),
+            Parallel(nameof(CrossCarrierAmbiguousTwoPathGraphRetainsPoliciesAndReportsSeam), CrossCarrierAmbiguousTwoPathGraphRetainsPoliciesAndReportsSeam),
+            Parallel(nameof(CrossCarrierBudgetedChunksRetainAdapterMeasureCostAndReportsSeam), CrossCarrierBudgetedChunksRetainAdapterMeasureCostAndReportsSeam),
+            Parallel(nameof(CrossCarrierFixedMacroSubstitutionComposesOriginsAndReportsSeam), CrossCarrierFixedMacroSubstitutionComposesOriginsAndReportsSeam),
+            Parallel(nameof(CrossCarrierRecursiveExpansionStopsAtResourceBoundaryAndReportsSeam), CrossCarrierRecursiveExpansionStopsAtResourceBoundaryAndReportsSeam),
+            Parallel(nameof(EngineWorkloadManifestIsBoundedAndDifferential), EngineWorkloadManifestIsBoundedAndDifferential),
         };
 
         var ids = new HashSet<string>(StringComparer.Ordinal);

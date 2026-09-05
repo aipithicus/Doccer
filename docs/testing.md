@@ -50,6 +50,16 @@ The repository maintains specific baseline verification suites:
 ### F. Materialization ($K7$)
 - Complete 156-plan / 430-piece census covering reconstruction, origin/synthetic posture, exact-middle composition, and unused-source residue accounting.
 
+### G. Cross-carrier seams and named workloads ($K8$ / $A0$)
+- Five bounded cross-carrier witnesses cover multi-family pairing with residue, two-path ambiguity,
+  adapter-budgeted chunks, fixed macro substitution with composed origins, and externally
+  resource-bounded recursive expansion.
+- One differential manifest fixes eleven named dense/sparse selection, validation, graph/path,
+  fact/support, adjacency, vector, origin, and materialization workloads. Timing is a separate
+  Release-only evidence command and never a test threshold.
+- See the [executable recipes](recipes/k8-a0.md) and
+  [typed seam report](reports/k8-a0-seam-report.md).
+
 ---
 
 ## 4. Running the Suites
@@ -60,7 +70,7 @@ To execute the catalogued engine suite through the canonical checked-in plan:
 dotnet run --project src/Doccer.TestRunner/Doccer.TestRunner.csproj -- run --plan tests/test-plan.json
 ```
 
-The plan names the `Doccer.Tests` executable harness explicitly and expands its 108 catalogued cases
+The plan names the `Doccer.Tests` executable harness explicitly and expands its 114 catalogued cases
 without crawling the `tests/` tree. This direct .NET command is the contributor and CI engine entry
 point: future CI wiring must invoke it unchanged. A shell wrapper is not part of the contract. The
 runner writes one bounded receipt to stdout.
@@ -80,6 +90,18 @@ On failure, use progressive disclosure instead of rerunning the whole suite with
 dotnet run --project tests/Doccer.Tests/Doccer.Tests.csproj -- run --case <stable-id> --details
 ```
 
+K8 cases are ordinary catalog entries. A0 measurement is deliberately outside the test pass/fail
+path; it requires Release configuration, writes versioned JSON beneath ignored `build/a0/`, and
+checks every sample against an independent result checksum:
+
+```powershell
+dotnet run --configuration Release --project tests/Doccer.Tests/Doccer.Tests.csproj -- measure-a0 --output build/a0/a0-baseline.json
+```
+
+The artifact records runtime/CPU identity, warmups, repetitions, raw elapsed/allocation samples,
+medians, exact workload parameters, and the no-broad-claim qualification. It contains no threshold
+or accelerated-backend comparison.
+
 To verify the TestRunner contracts, native catalog adapter, and fake-child boundary:
 
 ```powershell
@@ -89,7 +111,7 @@ dotnet run --project tests/Doccer.TestRunner.Tests/Doccer.TestRunner.Tests.cspro
 
 The contract suite loads the checked-in plan and covers strict plan parsing; native catalog schema,
 ordinal, identity, and concurrency validation; one-build-per-project expansion through evaluated
-`TargetPath`; exact single-case argument vectors; a live canary over all 108 Doccer cases; explicit
+`TargetPath`; exact single-case argument vectors; a live canary over all 114 Doccer cases; explicit
 parallel/exclusive posture; compact artifact containment and path budgets; reserved child
 environment; UTC/result invariants; complete summary accounting; append-only event/lifecycle
 rules; exit precedence; a bounded one-line receipt; selective detail materialization; and the

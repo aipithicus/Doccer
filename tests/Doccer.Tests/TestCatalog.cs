@@ -40,6 +40,7 @@ internal static partial class Program
         {
             "list" => ListCases(args),
             "run" => RunSelectedCase(args),
+            "measure-a0" => RunA0Measurements(args),
             "help" or "--help" or "-h" => WriteHelp(),
             _ => UsageError($"Unknown command '{args[0]}'."),
         };
@@ -244,10 +245,12 @@ internal static partial class Program
               Doccer.Tests --details
               Doccer.Tests list [--format text|json]
               Doccer.Tests run --case <stable-id> [--format text|json] [--details]
+              Doccer.Tests measure-a0 --output <build-relative-json-path>
               Doccer.Tests --help
 
             No arguments runs the complete catalog serially and emits one receipt.
             --details additionally emits exception detail after a failure receipt.
+            measure-a0 requires a Release build and writes mechanics-grade evidence beneath build/.
             """);
         return 0;
     }
@@ -383,6 +386,12 @@ internal static partial class Program
             Parallel(nameof(MaterializationPreservesUtf16AtomBoundaries), MaterializationPreservesUtf16AtomBoundaries),
             Parallel(nameof(MaterializationResultRetainsEvidenceAndComposesExactly), MaterializationResultRetainsEvidenceAndComposesExactly),
             Parallel(nameof(MaterializationMatchesIndependentFinitePlanOracle), MaterializationMatchesIndependentFinitePlanOracle),
+            Parallel(nameof(K8MultiFamilyPairingRetainsResidueAndReportsSeam), K8MultiFamilyPairingRetainsResidueAndReportsSeam),
+            Parallel(nameof(K8AmbiguousTwoPathGraphRetainsPoliciesAndReportsSeam), K8AmbiguousTwoPathGraphRetainsPoliciesAndReportsSeam),
+            Parallel(nameof(K8BudgetedChunksRetainAdapterMeasureCostAndReportsSeam), K8BudgetedChunksRetainAdapterMeasureCostAndReportsSeam),
+            Parallel(nameof(K8FixedMacroSubstitutionComposesOriginsAndReportsSeam), K8FixedMacroSubstitutionComposesOriginsAndReportsSeam),
+            Parallel(nameof(K8RecursiveExpansionStopsAtResourceBoundaryAndReportsSeam), K8RecursiveExpansionStopsAtResourceBoundaryAndReportsSeam),
+            Parallel(nameof(A0WorkloadManifestIsBoundedAndDifferential), A0WorkloadManifestIsBoundedAndDifferential),
         };
 
         var ids = new HashSet<string>(StringComparer.Ordinal);

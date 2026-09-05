@@ -257,13 +257,13 @@ internal static partial class Program
             .GetAwaiter()
             .GetResult();
 
-        Equal(108, expansion.WorkItems.Count, "checked-in Doccer catalog case count");
+        Equal(114, expansion.WorkItems.Count, "checked-in Doccer catalog case count");
         Equal(
-            108,
+            114,
             expansion.WorkItems.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count(),
             "checked-in Doccer catalog unique expanded identities");
         Equal(
-            108,
+            114,
             expansion.WorkItems.Count(item => item.Concurrency == TestConcurrency.Parallel),
             "checked-in Doccer catalog parallel declarations");
         SequenceEqual(

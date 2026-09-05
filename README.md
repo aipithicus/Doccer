@@ -66,7 +66,7 @@ dotnet run --project src/Doccer.TestRunner/Doccer.TestRunner.csproj -- run --pla
 dotnet run --project tests/Doccer.TestRunner.Tests/Doccer.TestRunner.Tests.csproj
 ```
 
-The checked-in plan names the current 108-case `Doccer.Tests` catalog explicitly. The harness still
+The checked-in plan names the current 114-case `Doccer.Tests` catalog explicitly. The harness still
 supports its no-argument serial compatibility entry point and exact single-case execution. The
 separate `Doccer.TestRunner` builds and resolves each distinct executable harness project once,
 validates its bounded JSON catalog, and expands every case into an exact
@@ -88,6 +88,8 @@ not depend on Nushell, PowerShell, or another command shell.
 | [**DEVELOPMENT.md**](DEVELOPMENT.md) | Practical guide for building, testing, and packaging. |
 | [**AGENTS.md**](AGENTS.md) | Agent orientation, layer order invariants, and working rules. |
 | [**Verification & Testing**](docs/testing.md) | Verification approach, bounded law checks, and oracle and census baselines. |
+| [**K8 + A0 Seam Report**](docs/reports/k8-a0-seam-report.md) | Five cross-carrier qualifications, failed-composition evidence, portability needs, and one mechanics-grade workload baseline. |
+| [**K8 + A0 Recipes**](docs/recipes/k8-a0.md) | Exact case-selection and Release measurement commands. |
 | [**Architecture Overview**](docs/architecture/overview.md) | Capability library vs. engine, coordinate spaces (`TextMaster`), and Unicode posture. |
 | [**Current Design Principles**](docs/architecture/design-principles.md) | Rationale for the shape of the implemented kernel and questions for evaluating additions. |
 | [**Carriers & Naming Conventions**](docs/specification/carriers.md) | Many-sorted algebra ($P, L, I, C, F, O, B, U$), identity rules, and current naming conventions. |
